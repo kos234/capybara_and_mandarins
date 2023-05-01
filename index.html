@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Капибара и мандарины</title>
+    <link rel="stylesheet" href="main.css">
+    <script src="main.js"></script>
+    <link rel="preload" href="imgs/capy_walk_0_0.webp" as="image">
+    <link rel="preload" href="imgs/capy_walk_0_1.webp" as="image">
+    <link rel="preload" href="imgs/capy_walk_0_2.webp" as="image">
+    <link rel="preload" href="imgs/capy_walk_0_3.webp" as="image">
+    <link rel="preload" href="imgs/capy_walk_1_0.webp" as="image">
+    <link rel="preload" href="imgs/capy_walk_1_1.webp" as="image">
+    <link rel="preload" href="imgs/capy_walk_1_2.webp" as="image">
+    <link rel="preload" href="imgs/capy_walk_1_3.webp" as="image">
+    <link rel="preload" href="imgs/wall_anim_0.webp" as="image">
+    <link rel="preload" href="imgs/wall_anim_1.webp" as="image">
+    <link rel="preload" href="imgs/wall_anim_2.webp" as="image">
+    <link rel="preload" href="imgs/wall_anim_3.webp" as="image">
+</head>
+<body>
+<div class="top_wrapper">
+    <div class="air_wrapper">
+    </div>
+
+    <div class="floor_wrapper custom_wrapper">
+        <img src="imgs/floor.webp" class="floor" alt="floor"/>
+    </div>
+
+    <div class="node_wrapper custom_wrapper">
+        <img src="imgs/node.webp" class="node" alt="node"/>
+    </div>
+
+    <div class="water_wrapper">
+        <img src="imgs/water.webp" class="water" alt="water"/>
+    </div>
+    <img class="pauseButton" src="imgs/pause_black_24dp.svg" alt="pause">
+    <img src="imgs/capy_walk_0_0.webp" class="capybara" alt="capy"/>
+</div>
+<div class="bottom_wrapper">
+    <img src="imgs/wall_anim_1.webp" class="wall wall_anim" alt="capy"/>
+    <img src="imgs/wall_anim_1.webp" class="wall wall_two wall_anim" alt="capy"/>
+
+    <div class="mandarines_container">
+        <!--        <img src="imgs/mandarin.webp" alt="mandarin" class="mandarin wa0">-->
+        <!--        <img src="imgs/mandarin.webp" alt="mandarin" class="mandarin wa3">-->
+    </div>
+    <img src="imgs/wall.webp" class="wall wall_one" alt="capy"/>
+
+    <img src="imgs/wall.webp" class="wall wall_two" alt="capy"/>
+
+    <div class="floor_wrapper custom_wrapper">
+        <img src="imgs/floor.webp" class="floor" alt="floor"/>
+    </div>
+    <div class="node_wrapper custom_wrapper">
+        <img src="imgs/node.webp" class="node" alt="node"/>
+    </div>
+    <div class="stone_wrapper custom_wrapper">
+        <img src="imgs/stone.webp" class="stone" alt="stone"/>
+    </div>
+    <!--    <div class="zone">-->
+
+    <!--    </div>-->
+</div>
+<div class="data_score">
+    <div class="score_page">Счёт: 0</div>
+    <div class="lose_wrapper">
+        <img src="imgs/mandarin.webp" alt="mandarin_lose" class="mandarin_lose">
+        <img src="imgs/mandarin.webp" alt="mandarin_lose" class="mandarin_lose">
+        <img src="imgs/mandarin.webp" alt="mandarin_lose" class="mandarin_lose">
+        <img src="imgs/mandarin.webp" alt="mandarin_lose" class="mandarin_lose">
+        <img src="imgs/mandarin.webp" alt="mandarin_lose" class="mandarin_lose">
+        <img src="imgs/mandarin.webp" alt="mandarin_lose" class="mandarin_lose">
+    </div>
+</div>
+
+<div class="game_start">
+    <div class="menu_container">
+        <div class="title_page">Капибара и мандарины</div>
+        <div class="subtitle_page max_score">Максимальный счёт: 0</div>
+        <div class="subtitle_page local_score" style="display: none">Текущий счёт:</div>
+
+        <div class="button_page start">Играть</div>
+        <div class="button_page settings">Настройки</div>
+        <div class="button_page bot">Бот</div>
+    </div>
+</div>
+
+<div class="hit_box_mad hit_box">
+
+</div>
+
+<div class="hit_box_capy hit_box"></div>
+
+
+<div class="game_buttons">
+    <div class="groups_button">
+        <img src="imgs/button.webp" class="game_button upright" alt="upright">
+        <img src="imgs/button.webp" class="game_button downright" alt="upright">
+    </div>
+    <div class="groups_button">
+        <img src="imgs/button.webp" class="game_button upleft" alt="upright">
+        <img src="imgs/button.webp" class="game_button downleft" alt="upright">
+    </div>
+</div>
+</body>
+</html>
