@@ -168,8 +168,8 @@ body {
     display: flex;
     background: rgba(0,0,0,0.8);
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    /*align-items: center;*/
+    /*justify-content: center;*/
 
     transition: transform 0.3s ease-in-out;
 }
@@ -588,4 +588,100 @@ body {
 }
 .groups_button img{
     width: calc(var(--8-px) * 40);
+}
+
+.wrapper_start{
+    transition: transform 0.5s ease-in-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.start_elem{
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.left_align{
+    text-align: left;
+    width: 100%;
+    font-weight: 300;
+}
+
+.switch_page{
+    display: flex;
+    margin: calc(var(--8-px) * 2.5);
+    font-size: calc(var(--8-px) * 5);
+    font-weight: 100;
+    cursor: pointer;
+    align-items: flex-start;
+}
+
+.selection{
+    position: relative;
+    border: white 1px solid;
+    padding: 10px;
+    border-radius: 10%;
+    cursor: pointer;
+}
+
+.selectAll{
+    /* padding-top: 9px; */
+    overflow: hidden;
+    max-height: 0;
+    position: absolute;
+    /* background-color: rgb(255 255 255 / 62%); */
+    color: black;
+    font-weight: 300;
+    left: -3px;
+    top: calc(var(--8-px) * 5 + 30px);
+    /* border-radius: 13px; */
+    transition: max-height 0.5s ease-in-out;
+}
+
+.wrapper_select_all{
+    margin-top: 10px;
+    /* margin: 10px; */
+    /* box-sizing: border-box; */
+    padding: 10px;
+    border-radius: 13px;
+    border: 1px solid;
+    background:  rgb(255 255 255 / 62%);
+}
+
+.wrapper_select_all::after {
+    content: '';
+    position: absolute; /* Абсолютное позиционирование */
+    left: 20px;
+    top: -10px; /* Положение треугольника */
+    border: 10px solid transparent; /* Прозрачные границы */
+    border-bottom: 10px solid rgb(255 255 255 / 62%); /* Добавляем треугольник */
+}
+
+.selectAll_content:nth-child(n){
+    font-size: calc(var(--8-px) * 4);
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid black
+}
+
+.selectAll_content:last-child{
+    border-bottom: unset;
+    margin-bottom: unset;
+    padding-bottom: unset;
+}
+
+.selection:hover .selectAll{
+    max-height: 500px;
+}
+
+.width_container{
+    width: 50vw;
+}
+
+.selection_about{
+    line-height: 2;
 }

@@ -8,7 +8,7 @@ let difficult = 0;
 let bot;
 let mandarines;
 
-let isDebug = true;
+let isDebug = false;
 
 class CapyPlayer {
     player;
@@ -217,7 +217,7 @@ class Mandarines {
                 }
 
                 if ((Math.max(Math.abs(elemRect.bottom - rectCapy.top), Math.abs(rectCapy.top + rectCapy.bottom - elemRect.top)) <= elemRect.height + rectCapy.bottom) && (Math.max(Math.abs(elemRect.right - rectCapy.left), Math.abs(rectCapy.left + rectCapy.right - elemRect.left)) <= elemRect.width + rectCapy.right)) {
-                    if(elem.getAttribute("wall") % 2 === capy.directionY % 2)
+                    if (elem.getAttribute("wall") % 2 === capy.directionY % 2)
                         return;
                     this.addWin();
                     this.mandarines.delete(elem.getAttribute("id"));
@@ -228,13 +228,13 @@ class Mandarines {
     }
 
     addLose() {
-        // this.mandarinLose++;
-        // this.animBar();
-        // if (this.loseWrapper.children.length < this.mandarinLose) {
-        //     this.gameOver();
-        // } else {
-        //     this.loseWrapper.children[this.mandarinLose - 1].src = "imgs/mandarin_not.webp";
-        // }
+        this.mandarinLose++;
+        this.animBar();
+        if (this.loseWrapper.children.length < this.mandarinLose) {
+            this.gameOver();
+        } else {
+            this.loseWrapper.children[this.mandarinLose - 1].src = "imgs/mandarin_not.webp";
+        }
     }
 
     animBar() {
@@ -427,7 +427,18 @@ class Menu {
     maxScore
     isOpen = false;
 
+
+    //settings
+    selectElemDifficult;
+    selectionAboutDifficult;
+
     constructor() {
+        difficult = localStorage.getItem("difficult");
+        if (difficult == null)
+            difficult = 0;
+        else
+            difficult = parseInt(difficult);
+
         this.pauseButton = document.querySelector(".pauseButton");
         this.isOpen = true;
         document.addEventListener('keydown', (event) => {
@@ -440,12 +451,8 @@ class Menu {
         this.localScore = document.querySelector(".subtitle_page.local_score");
 
         this.maxScore = localStorage.getItem("max_score");
-        difficult = localStorage.getItem("difficult");
         if (this.maxScore === null)
             this.maxScore = 0;
-
-        if (difficult == null)
-            difficult = 0;
 
         this.subtitlePage.innerText = "Максимальный счёт: " + this.maxScore;
 
@@ -456,9 +463,51 @@ class Menu {
         this.menu.querySelector(".button_page.start").onclick = () => {
             this.startGame();
         };
+        this.menu.querySelector(".button_page.settings").onclick = () => {
+            this.settings();
+        };
         this.menu.querySelector(".button_page.bot").onclick = () => {
             this.startGame(true);
         };
+
+        let tmp = document.body.querySelector(".switch_page.difficult");
+        this.selectElemDifficult = tmp.querySelector(".selectElem");
+        this.selectionAboutDifficult = tmp.querySelector(".selection_about");
+        tmp.querySelectorAll(".selectAll_content").forEach(elem => {
+            elem.onclick = () => {
+                this.clickSelection(elem);
+            }
+        })
+    }
+
+    clickSelection(elem) {
+        difficult = parseInt(elem.getAttribute("data-type"));
+
+        this.initDif();
+
+        localStorage.setItem("difficult", difficult);
+    }
+
+    initDif(){
+        switch (difficult){
+            case 0:
+                this.selectElemDifficult.innerText = "Лёгкая";
+                this.selectionAboutDifficult.innerHTML = "&#160;-&#160;не больше 4 мандарин на экране, скорость мандарин ограничена 2-мя секундами"
+                break;
+            case 1:
+                this.selectElemDifficult.innerText = "Нормальная";
+                this.selectionAboutDifficult.innerHTML = "&#160;-&#160;не больше 8 мандарин на экране, скорость мандарин ограничена 1-ой секундой"
+                break;
+            case 2:
+                this.selectElemDifficult.innerText = "Сложная";
+                this.selectionAboutDifficult.innerHTML = "&#160;-&#160;никаких ограничений, вы проиграете"
+                break;
+        }
+    }
+
+    settings() {
+        this.menu.querySelector(".wrapper_start").style.transform = "translateY(-100vh)";
+        this.initDif();
     }
 
     startGame(isBot = false) {
