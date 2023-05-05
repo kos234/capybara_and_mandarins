@@ -2,6 +2,7 @@ let _8__px;
 let _current_8_px;
 let capy;
 let isPaused = true;
+let isWeatherPaused = false;
 let backGround;
 let menu;
 let difficult = 0;
@@ -365,7 +366,7 @@ class BackGround {
         let speedWater = this.animWater.offsetWidth / (20 * 1000)
         let timeWater = Math.ceil(_current_8_px / speedWater);
         setInterval(() => {
-            if (isPaused)
+            if (isWeatherPaused)
                 return;
             this.state++;
             if (this.state > 3)
@@ -376,7 +377,7 @@ class BackGround {
         }, 100);
 
         setInterval(() => {
-            if (isPaused)
+            if (isWeatherPaused)
                 return;
             if (Math.random() <= 0.5) {
                 let div = document.createElement("div");
@@ -394,7 +395,7 @@ class BackGround {
         let timeCloud = Math.ceil(_current_8_px / speedCloud);
 
         setInterval(() => {
-            if (isPaused)
+            if (isWeatherPaused)
                 return;
             let rand = parseInt((Math.random() * 3), 10);
             let local = this.dataOffset[rand];
@@ -443,7 +444,7 @@ class Menu {
         this.isOpen = true;
         document.addEventListener('keydown', (event) => {
             if (event.code === "Escape" && !this.isOpen)
-                onPause(!isPaused);
+                onPause(!isPaused, true);
         });
 
         this.menu = document.querySelector(".game_start");
@@ -463,9 +464,11 @@ class Menu {
         this.menu.querySelector(".button_page.start").onclick = () => {
             this.startGame();
         };
-        this.menu.querySelector(".button_page.settings").onclick = () => {
-            this.settings();
-        };
+        this.menu.querySelectorAll(".button_page.settings").forEach(elem => {
+            elem.onclick = () => {
+                        this.settings();
+                    };
+        });
         this.menu.querySelector(".button_page.bot").onclick = () => {
             this.startGame(true);
         };
@@ -477,7 +480,9 @@ class Menu {
             elem.onclick = () => {
                 this.clickSelection(elem);
             }
-        })
+        });
+
+        this.initDif();
     }
 
     clickSelection(elem) {
@@ -506,8 +511,11 @@ class Menu {
     }
 
     settings() {
-        this.menu.querySelector(".wrapper_start").style.transform = "translateY(-100vh)";
-        this.initDif();
+        let elem = this.menu.querySelector(".wrapper_start");
+        if(elem.style.transform)
+            elem.style.removeProperty("transform");
+        else
+            elem.style.transform = "translateY(-100vh)";
     }
 
     startGame(isBot = false) {
@@ -555,18 +563,20 @@ window.addEventListener("resize", function () {
     gameInit(false);
 });
 
-function onPause(paus = true) {
+function onPause(paus = true, full = false) {
     document.querySelectorAll(".mandarin").forEach((elem) => {
         elem.style.animationPlayState = paus ? "paused" : "running";
     });
-    document.querySelectorAll(".water_anim").forEach((elem) => {
-        elem.style.animationPlayState = paus ? "paused" : "running";
-    });
-    document.querySelectorAll(".air_anim").forEach((elem) => {
-        elem.style.animationPlayState = paus ? "paused" : "running";
-    });
-
-    isPaused = paus;
+     isPaused = paus;
+    if(full){
+        isWeatherPaused = paus;
+        document.querySelectorAll(".water_anim").forEach((elem) => {
+                elem.style.animationPlayState = paus ? "paused" : "running";
+            });
+            document.querySelectorAll(".air_anim").forEach((elem) => {
+                elem.style.animationPlayState = paus ? "paused" : "running";
+            });
+    }
     document.querySelector(".pauseButton").src = isPaused ? "imgs/play_arrow_black_24dp.svg" : "imgs/pause_black_24dp.svg";
 }
 

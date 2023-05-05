@@ -159,6 +159,7 @@ body {
 }
 
 .game_start{
+    overflow: hidden;
     z-index: 10;
     position: absolute;
     top: 0;
@@ -193,7 +194,7 @@ body {
 
 .menu_container{
     width: auto;
-    height: 60vh;
+    /*height: 60vh; */
     /*background: red;*/
     display: flex;
     flex-direction: column;
@@ -609,6 +610,14 @@ body {
     text-align: left;
     width: 100%;
     font-weight: 300;
+    display: flex;
+    align-items: center;
+}
+
+.center_align{
+    text-align: center;
+
+    width: 100%;
 }
 
 .switch_page{
@@ -621,9 +630,10 @@ body {
 }
 
 .selection{
+    font-weight: 300;
     position: relative;
-    border: white 1px solid;
-    padding: 10px;
+    border: white calc(var(--8-px) * 0.125) solid;
+    padding: calc(var(--8-px) * 1.25);
     border-radius: 10%;
     cursor: pointer;
 }
@@ -636,36 +646,36 @@ body {
     /* background-color: rgb(255 255 255 / 62%); */
     color: black;
     font-weight: 300;
-    left: -3px;
-    top: calc(var(--8-px) * 5 + 30px);
+    left: calc(var(--8-px) * -0.375);
+    top: calc(var(--8-px) * 10);
     /* border-radius: 13px; */
     transition: max-height 0.5s ease-in-out;
 }
 
 .wrapper_select_all{
-    margin-top: 10px;
+    margin-top: calc(var(--8-px) * 1.25);
     /* margin: 10px; */
     /* box-sizing: border-box; */
-    padding: 10px;
-    border-radius: 13px;
-    border: 1px solid;
+    padding: calc(var(--8-px) * 1.25);
+    border-radius: calc(var(--8-px) * 1.625);
+    border: calc(var(--8-px) * 0.125) solid;
     background:  rgb(255 255 255 / 62%);
 }
 
 .wrapper_select_all::after {
     content: '';
     position: absolute; /* Абсолютное позиционирование */
-    left: 20px;
-    top: -10px; /* Положение треугольника */
-    border: 10px solid transparent; /* Прозрачные границы */
-    border-bottom: 10px solid rgb(255 255 255 / 62%); /* Добавляем треугольник */
+    left: calc(var(--8-px) * 2.5);
+    top: calc(var(--8-px) * -1.25); /* Положение треугольника */
+    border: calc(var(--8-px) * 1.25) solid transparent; /* Прозрачные границы */
+    border-bottom: calc(var(--8-px) * 1.25) solid rgb(255 255 255 / 62%); /* Добавляем треугольник */
 }
 
 .selectAll_content:nth-child(n){
     font-size: calc(var(--8-px) * 4);
-    margin-bottom: 5px;
-    padding-bottom: 5px;
-    border-bottom: 1px solid black
+    margin-bottom: calc(var(--8-px) * 0.625);
+    padding-bottom: calc(var(--8-px) * 0.625);
+    border-bottom: calc(var(--8-px) * 0.125) solid black
 }
 
 .selectAll_content:last-child{
@@ -675,7 +685,7 @@ body {
 }
 
 .selection:hover .selectAll{
-    max-height: 500px;
+    max-height: calc(var(--8-px) * 62.5);
 }
 
 .width_container{
@@ -683,5 +693,43 @@ body {
 }
 
 .selection_about{
+    font-weight: 200;
     line-height: 2;
+}
+
+.switch_button{
+    width: calc(var(--8-px) * 9);
+    border-radius: calc(var(--8-px) * 3);
+    height: calc(var(--8-px) * 5);
+    /*border: calc(var(--8-px) * 0.125) solid white; */
+    margin-left: calc(var(--8-px) * 2.5);
+    overflow: hidden;
+
+    transition: background 0.5s ease-in-out;
+}
+
+.switch_toggle{
+    margin:  calc(var(--8-px) * 0.5);
+    height: calc(var(--8-px) * 4);
+    width: calc(var(--8-px) * 4);
+    background: white;
+    border-radius: 100%;
+
+    transition: transform 0.5s ease-in-out;
+}
+
+.switch_button.disable{
+    background: #cccccc
+}
+
+.switch_button.active{
+    background: #2196f3
+}
+
+.switch_button.active .switch_toggle{
+    transform: translateX(calc(var(--8-px) * 8 - 100%));
+}
+
+.switch_button.disable .switch_toggle{
+    transform: translateX(calc(var(--8-px) * 1);
 }
