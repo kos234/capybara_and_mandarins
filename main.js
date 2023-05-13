@@ -10,6 +10,11 @@ let bot;
 let mandarines;
 
 let isDebug = false;
+let isMusic = true;
+
+let isMobile = (/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i.test(navigator.userAgent));
+// let isMobile = true;
+ console.log(isMobile);
 
 class CapyPlayer {
     player;
@@ -26,6 +31,53 @@ class CapyPlayer {
         this.player = document.querySelector(".capybara");
         this.parentField = this.player.parentNode;
         this.reset();
+
+        let gameButtons;
+        if (isMobile) {
+            gameButtons = document.body.querySelector(".game_buttons");
+            gameButtons.style.removeProperty("display");
+
+            gameButtons.querySelectorAll(".game_button").forEach(elem => {
+                elem.addEventListener("pointerdown", () => {
+                    elem.children[0].src = "imgs/button_pressed.webp";
+                    console.log("down");
+                    elem.getAttribute("data-key").split(";").forEach(s => {
+                        if (!bot.isBot())
+                            this.keys[s] = true;
+                    });
+                });
+                elem.addEventListener("pointerup", () => {
+                    elem.children[0].src = "imgs/button.webp";
+                    // console.log("up");
+                    // alert("up")
+                    elem.getAttribute("data-key").split(";").forEach(s => {
+                        if (!bot.isBot())
+                            delete this.keys[s];
+                    });
+                });
+                // let div = document.createElement("div");
+                // div.addEventListener("pointerleave", () => {
+                //    console.log("mouseenter");
+                // });
+                elem.addEventListener("pointerleave", () => {
+                    elem.children[0].src = "imgs/button.webp";
+                    // alert("leave")
+                    elem.getAttribute("data-key").split(";").forEach(s => {
+                        if (!bot.isBot())
+                            delete this.keys[s];
+                    });
+                });
+                // elem.addEventListener("mouseout", () => {
+                //    console.log("mouseout");
+                // });
+                // elem.addEventListener("mousemove", () => {
+                //    console.log("mousemove");
+                // });
+                // elem.addEventListener("mouseover", () => {
+                //    console.log("mouseover");
+                // });
+            });
+        }
 
         document.addEventListener('keydown', (event) => {
             if (!bot.isBot())
@@ -107,6 +159,13 @@ class CapyPlayer {
             if (this.state > 3)
                 this.state = 0;
             this.player.src = "imgs/capy_walk_" + this.directionY + "_" + this.state + ".webp";
+            this.player.alt = "imgs/capy_walk_" + this.directionY + "_" + this.state + ".webp";
+
+            if (isMusic) {
+                let walkAudio = new Audio("music/walk_" + parseInt(Math.random() * 6) + ".aac");
+                walkAudio.volume = 0.3;
+                walkAudio.play();
+            }
 
             this.player.style.left = "calc(" + this.position + " * var(--8-px))";
             this.player.style.bottom = this.state % 2 !== 0 ? "calc(-25 * var(--8-px))" : "calc(-25 * var(--8-px))";
@@ -196,8 +255,8 @@ class Mandarines {
         }, 60);
 
         setInterval(() => {
-            if (isPaused)
-                return;
+            // if (isPaused)
+            //     return;
             let rectCapy = capy.getCarrete();
             this.mandarines.forEach(elem => {
 
@@ -215,6 +274,11 @@ class Mandarines {
                     this.hit_box_mad.style.left = elemRect.left + "px";
                     this.hit_box_mad.style.width = elemRect.width + "px";
                     this.hit_box_mad.style.height = elemRect.height + "px";
+
+                     console.log("elem = " + isPaused);
+                     console.log((elemRect.top));
+                     console.log((elemRect.left));
+                     console.log((""));
                 }
 
                 if ((Math.max(Math.abs(elemRect.bottom - rectCapy.top), Math.abs(rectCapy.top + rectCapy.bottom - elemRect.top)) <= elemRect.height + rectCapy.bottom) && (Math.max(Math.abs(elemRect.right - rectCapy.left), Math.abs(rectCapy.left + rectCapy.right - elemRect.left)) <= elemRect.width + rectCapy.right)) {
@@ -230,6 +294,21 @@ class Mandarines {
 
     addLose() {
         this.mandarinLose++;
+        if (isMusic) {
+            let audio;
+            if (this.mandarinLose < 3) {
+                audio = new Audio("music/lose_0.aac");
+            } else if (this.mandarinLose < 5) {
+                audio = new Audio("music/lose_1.aac");
+            } else if (this.mandarinLose < 6) {
+                audio = new Audio("music/lose_2.aac");
+            } else {
+                audio = new Audio("music/lose_3.aac");
+            }
+
+            audio.play();
+        }
+
         this.animBar();
         if (this.loseWrapper.children.length < this.mandarinLose) {
             this.gameOver();
@@ -246,6 +325,11 @@ class Mandarines {
     }
 
     addWin() {
+        if (isMusic) {
+            let audio = new Audio("music/pickup.mp3");
+            audio.volume = 0.15;
+            audio.play();
+        }
         this.mandarinWin++;
         if (this.mandarinWin % 100 === 0) {
             this.mandarinLose = 0;
@@ -258,10 +342,17 @@ class Mandarines {
         this.random = 1 + parseInt(this.mandarinWin / 15);
         if (difficult !== 2)
             this.random = Math.min(this.random, difficult === 0 ? 4 : 8);
-        capy.offsetStep = 1 + this.mandarinWin / 15;
-        this.time = 5 - this.mandarinWin / 15;
-        if (difficult !== 2)
-            this.time = Math.max(this.time, difficult === 0 ? 2 : 1);
+        capy.offsetStep = 1 + this.mandarinWin / 30;
+         console.log("speed = " + capy.offsetStep);
+        this.time = 5 - this.mandarinWin / 30;
+        let minValue = 2;
+        if (difficult >= 1)
+            minValue = 1;
+        // else if(difficult === 2)
+        // minValue = (111 / (capy.offsetStep * 60)) * 3;
+         console.log("min = " + minValue);
+        // if (difficult !== 2)
+        this.time = Math.max(this.time, minValue);
     }
 
     gameOver() {
@@ -299,7 +390,7 @@ class Bot {
                 if (wall !== -1)
                     break;
             }
-            // capy.keys[event.code] = true;
+             // capy.keys[event.code] = true;
 
             // delete this.keys[event.co    de];
             if (wall === -1)
@@ -359,9 +450,9 @@ class BackGround {
     }
 
     animBackground() {
-        console.log("8px");
-        console.log(_8__px)
-        console.log(_current_8_px)
+         console.log("8px");
+         console.log(_8__px)
+         console.log(_current_8_px)
 
         let speedWater = this.animWater.offsetWidth / (20 * 1000)
         let timeWater = Math.ceil(_current_8_px / speedWater);
@@ -390,7 +481,7 @@ class BackGround {
                 this.animWater.appendChild(div);
             }
         }, timeWater);
-        console.log(timeWater)
+         console.log(timeWater)
         let speedCloud = this.animAir.offsetWidth / (30 * 1000)
         let timeCloud = Math.ceil(_current_8_px / speedCloud);
 
@@ -415,7 +506,7 @@ class BackGround {
                 this.animAir.appendChild(div);
             }
         }, timeCloud);
-        console.log(timeCloud)
+         console.log(timeCloud)
     }
 }
 
@@ -427,6 +518,7 @@ class Menu {
     localScore;
     maxScore
     isOpen = false;
+    backgroundAudio = new Audio('music/background.aac');
 
 
     //settings
@@ -443,7 +535,7 @@ class Menu {
         this.pauseButton = document.querySelector(".pauseButton");
         this.isOpen = true;
         document.addEventListener('keydown', (event) => {
-            if (event.code === "Escape" && !this.isOpen)
+            if (event.code === "Escape")
                 onPause(!isPaused, true);
         });
 
@@ -466,8 +558,8 @@ class Menu {
         };
         this.menu.querySelectorAll(".button_page.settings").forEach(elem => {
             elem.onclick = () => {
-                        this.settings();
-                    };
+                this.settings();
+            };
         });
         this.menu.querySelector(".button_page.bot").onclick = () => {
             this.startGame(true);
@@ -483,6 +575,29 @@ class Menu {
         });
 
         this.initDif();
+
+        this.menu.querySelectorAll(".switch_button").forEach(elem => {
+            let id = elem.getAttribute("data-id");
+            let value = localStorage.getItem("settings_" + id);
+            if (value == null) {
+                switch (id) {
+                    case "0":
+                        value = "1";
+                        break;
+                    case '1':
+                        value = "0";
+                        break;
+                }
+            }
+            console.log(value);
+            let isActive = !(/active/.test(elem.className));
+            if (isActive === (value === "1"))
+                this.switchClick(elem);
+
+            elem.onclick = () => {
+                this.switchClick(elem);
+            }
+        })
     }
 
     clickSelection(elem) {
@@ -493,8 +608,8 @@ class Menu {
         localStorage.setItem("difficult", difficult);
     }
 
-    initDif(){
-        switch (difficult){
+    initDif() {
+        switch (difficult) {
             case 0:
                 this.selectElemDifficult.innerText = "Лёгкая";
                 this.selectionAboutDifficult.innerHTML = "&#160;-&#160;не больше 4 мандарин на экране, скорость мандарин ограничена 2-мя секундами"
@@ -510,9 +625,31 @@ class Menu {
         }
     }
 
+    switchClick(elem) {
+        let isActive = !(/active/.test(elem.className));
+        elem.className = elem.className.replace(/\s+(active|disable)/, "") + " " + (isActive ? "active" : "disable");
+        let id = elem.getAttribute("data-id");
+
+        localStorage.setItem("settings_" + id, isActive ? "1" : "0");
+        switch (id) {
+            case "0":
+                isMusic = isActive;
+                if (isActive) {
+                    this.playBackground();
+                } else {
+                    this.backgroundAudio.pause();
+                }
+                break;
+
+            case "1":
+                isDebug = isActive;
+                break;
+        }
+    }
+
     settings() {
         let elem = this.menu.querySelector(".wrapper_start");
-        if(elem.style.transform)
+        if (elem.style.transform)
             elem.style.removeProperty("transform");
         else
             elem.style.transform = "translateY(-100vh)";
@@ -526,10 +663,23 @@ class Menu {
         onPause(false);
         if (this.isReload) {
             mandarines = new Mandarines();
+            this.playBackground();
         }
         this.isReload = false;
         if (isBot)
             bot.start();
+    }
+
+    playBackground() {
+        if (!isMusic)
+            return;
+        if (isWeatherPaused)
+            return;
+
+        this.backgroundAudio.volume = 0.3;
+        this.backgroundAudio.play().then((r) => {
+            this.playBackground();
+        })
     }
 
     gaveEnd(score) {
@@ -545,7 +695,7 @@ class Menu {
         this.menu.style.transform = "translateY(0%)";
         this.menu.querySelector(".title_page").innerText = "Игра окончена";
         this.localScore.style.removeProperty("display");
-        console.log("Текущий счёт: " + score);
+         console.log("Текущий счёт: " + score);
         this.localScore.innerText = "Текущий счёт: " + score;
         this.subtitlePage.innerText = "Максимальный счёт: " + this.maxScore;
     }
@@ -556,26 +706,38 @@ window.addEventListener("load", () => {
 });
 
 document.addEventListener("visibilitychange", function () {
-    if (document.hidden)
-        onPause(true);
+    // if (document.hidden)
+     console.log("gidden = " + document.hidden);
+    onPause(document.hidden, true, true);
 });
 window.addEventListener("resize", function () {
+    // alert("resize");
     gameInit(false);
 });
 
-function onPause(paus = true, full = false) {
-    document.querySelectorAll(".mandarin").forEach((elem) => {
-        elem.style.animationPlayState = paus ? "paused" : "running";
-    });
-     isPaused = paus;
-    if(full){
+function onPause(paus = true, full = false, isTab = false) {
+    if (menu.isOpen)
+        return;
+    if (!(isTab && !paus)) {
+        document.querySelectorAll(".mandarin").forEach((elem) => {
+            elem.style.animationPlayState = paus ? "paused" : "running";
+        });
+        isPaused = paus;
+    }
+    if (full) {
+        // console.log("weatcher")
         isWeatherPaused = paus;
         document.querySelectorAll(".water_anim").forEach((elem) => {
-                elem.style.animationPlayState = paus ? "paused" : "running";
-            });
-            document.querySelectorAll(".air_anim").forEach((elem) => {
-                elem.style.animationPlayState = paus ? "paused" : "running";
-            });
+            elem.style.animationPlayState = paus ? "paused" : "running";
+        });
+        document.querySelectorAll(".air_anim").forEach((elem) => {
+            elem.style.animationPlayState = paus ? "paused" : "running";
+        });
+        if (paus) {
+            menu.backgroundAudio.pause();
+        } else {
+            menu.playBackground();
+        }
     }
     document.querySelector(".pauseButton").src = isPaused ? "imgs/play_arrow_black_24dp.svg" : "imgs/pause_black_24dp.svg";
 }
@@ -591,6 +753,19 @@ function onPause(paus = true, full = false) {
 function gameInit(isStart = true) {
     _8__px = parseFloat(window.getComputedStyle(document.body).getPropertyValue('--8-px'));
     _current_8_px = document.documentElement.clientWidth * _8__px / 100;
+
+    if(document.documentElement.clientWidth < document.documentElement.clientHeight){
+        document.body.querySelector(".game_buttons").className = "game_buttons button_type_1";
+        if(isMobile){
+            fullScreenCancel(document.body);
+        }
+    }else{
+        document.body.querySelector(".game_buttons").className = "game_buttons";
+        if(isMobile){
+            fullScreen(document.body);
+        }
+    }
+
     let bottomWrapper = document.querySelector(".bottom_wrapper");
 
     let stoneWrapper = bottomWrapper.querySelector(".stone_wrapper");
@@ -600,7 +775,7 @@ function gameInit(isStart = true) {
             let floor = elem.querySelector(".floor");
             while (elem.offsetWidth < document.documentElement.clientWidth || elem.children.length % 2 === 0) {
                 elem.appendChild(floor.cloneNode(false));
-                console.log("531");
+                 console.log("531");
             }
         });
 
@@ -608,26 +783,27 @@ function gameInit(isStart = true) {
             let node = elem.querySelector(".node");
             while (elem.offsetWidth < document.documentElement.clientWidth || elem.children.length % 2 === 0) {
                 elem.appendChild(node.cloneNode(false));
-                console.log("539");
+                 console.log("539");
             }
         });
 
         let stone = stoneWrapper.querySelector(".stone");
         while (stoneWrapper.offsetWidth < document.documentElement.clientWidth || stoneWrapper.children.length % 2 === 0) {
             stoneWrapper.appendChild(stone.cloneNode(false));
-            console.log("547");
+             console.log("547");
         }
     }
 
     let rect = bottomWrapper.getBoundingClientRect();
     let offset = 0;
+    // alert(stoneWrapper.offsetHeight);
     while (rect.top + bottomWrapper.offsetHeight + (isStart ? 0 : offset) < document.documentElement.clientHeight) {
         bottomWrapper.appendChild(stoneWrapper.cloneNode(true));
         offset += stoneWrapper.offsetHeight;
-        console.log(stoneWrapper.offsetHeight);
-        console.log("552");
-        console.log(document.documentElement.clientHeight);
-        console.log(rect.top + bottomWrapper.offsetHeight + offset);
+         console.log(stoneWrapper.offsetHeight);
+         console.log("552");
+         console.log(document.documentElement.clientHeight);
+         console.log(rect.top + bottomWrapper.offsetHeight + offset);
     }
     if (isStart) {
         let topWrapper = document.querySelector(".top_wrapper");
@@ -635,8 +811,8 @@ function gameInit(isStart = true) {
         let waterWrapper = topWrapper.querySelector(".water_wrapper");
         let water = waterWrapper.querySelector(".water");
         while (waterWrapper.offsetWidth < document.documentElement.clientWidth) {
+            console.log("792");
             waterWrapper.appendChild(water.cloneNode(false));
-            console.log("562");
         }
     }
     airInit();
@@ -645,6 +821,18 @@ function gameInit(isStart = true) {
         backGround = new BackGround();
         menu = new Menu();
         capy = new CapyPlayer();
+    }
+}
+
+function fullScreen(element) {
+    if(element.requestFullscreen) {
+        element.requestFullscreen();
+    }
+}
+
+function fullScreenCancel() {
+    if(document.requestFullscreen) {
+        document.requestFullscreen();
     }
 }
 
