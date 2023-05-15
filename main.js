@@ -14,7 +14,7 @@ let isMusic = true;
 
 let isMobile = (/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i.test(navigator.userAgent));
 // let isMobile = true;
- console.log(isMobile);
+console.log(isMobile);
 
 class CapyPlayer {
     player;
@@ -275,10 +275,10 @@ class Mandarines {
                     this.hit_box_mad.style.width = elemRect.width + "px";
                     this.hit_box_mad.style.height = elemRect.height + "px";
 
-                     console.log("elem = " + isPaused);
-                     console.log((elemRect.top));
-                     console.log((elemRect.left));
-                     console.log((""));
+                    console.log("elem = " + isPaused);
+                    console.log((elemRect.top));
+                    console.log((elemRect.left));
+                    console.log((""));
                 }
 
                 if ((Math.max(Math.abs(elemRect.bottom - rectCapy.top), Math.abs(rectCapy.top + rectCapy.bottom - elemRect.top)) <= elemRect.height + rectCapy.bottom) && (Math.max(Math.abs(elemRect.right - rectCapy.left), Math.abs(rectCapy.left + rectCapy.right - elemRect.left)) <= elemRect.width + rectCapy.right)) {
@@ -343,14 +343,14 @@ class Mandarines {
         if (difficult !== 2)
             this.random = Math.min(this.random, difficult === 0 ? 4 : 8);
         capy.offsetStep = 1 + this.mandarinWin / 30;
-         console.log("speed = " + capy.offsetStep);
+        console.log("speed = " + capy.offsetStep);
         this.time = 5 - this.mandarinWin / 30;
         let minValue = 2;
         if (difficult >= 1)
             minValue = 1;
         // else if(difficult === 2)
         // minValue = (111 / (capy.offsetStep * 60)) * 3;
-         console.log("min = " + minValue);
+        console.log("min = " + minValue);
         // if (difficult !== 2)
         this.time = Math.max(this.time, minValue);
     }
@@ -390,7 +390,7 @@ class Bot {
                 if (wall !== -1)
                     break;
             }
-             // capy.keys[event.code] = true;
+            // capy.keys[event.code] = true;
 
             // delete this.keys[event.co    de];
             if (wall === -1)
@@ -450,9 +450,9 @@ class BackGround {
     }
 
     animBackground() {
-         console.log("8px");
-         console.log(_8__px)
-         console.log(_current_8_px)
+        console.log("8px");
+        console.log(_8__px)
+        console.log(_current_8_px)
 
         let speedWater = this.animWater.offsetWidth / (20 * 1000)
         let timeWater = Math.ceil(_current_8_px / speedWater);
@@ -481,7 +481,7 @@ class BackGround {
                 this.animWater.appendChild(div);
             }
         }, timeWater);
-         console.log(timeWater)
+        console.log(timeWater)
         let speedCloud = this.animAir.offsetWidth / (30 * 1000)
         let timeCloud = Math.ceil(_current_8_px / speedCloud);
 
@@ -506,7 +506,7 @@ class BackGround {
                 this.animAir.appendChild(div);
             }
         }, timeCloud);
-         console.log(timeCloud)
+        console.log(timeCloud)
     }
 }
 
@@ -550,7 +550,7 @@ class Menu {
         this.subtitlePage.innerText = "Максимальный счёт: " + this.maxScore;
 
         this.pauseButton.onclick = () => {
-            onPause(!isPaused);
+            onPause(!isPaused, true);
         }
 
         this.menu.querySelector(".button_page.start").onclick = () => {
@@ -663,6 +663,7 @@ class Menu {
         onPause(false);
         if (this.isReload) {
             mandarines = new Mandarines();
+            // this.backgroundAudio.play();
             this.playBackground();
         }
         this.isReload = false;
@@ -677,9 +678,23 @@ class Menu {
             return;
 
         this.backgroundAudio.volume = 0.3;
-        this.backgroundAudio.play().then((r) => {
+        this.backgroundAudio.play();
+        this.playBackground_local();
+    }
+
+    playBackground_local() {
+        if (!isMusic)
+            return;
+        if (isWeatherPaused)
+            return;
+        if (this.backgroundAudio.currentTime >= this.backgroundAudio.duration - 0.5) {
+            this.backgroundAudio = new Audio('music/background.aac');
             this.playBackground();
-        })
+        } else {
+            requestAnimationFrame(() => {
+                menu.playBackground_local();
+            });
+        }
     }
 
     gaveEnd(score) {
@@ -695,7 +710,7 @@ class Menu {
         this.menu.style.transform = "translateY(0%)";
         this.menu.querySelector(".title_page").innerText = "Игра окончена";
         this.localScore.style.removeProperty("display");
-         console.log("Текущий счёт: " + score);
+        console.log("Текущий счёт: " + score);
         this.localScore.innerText = "Текущий счёт: " + score;
         this.subtitlePage.innerText = "Максимальный счёт: " + this.maxScore;
     }
@@ -707,7 +722,7 @@ window.addEventListener("load", () => {
 
 document.addEventListener("visibilitychange", function () {
     // if (document.hidden)
-     console.log("gidden = " + document.hidden);
+    console.log("gidden = " + document.hidden);
     onPause(document.hidden, true, true);
 });
 window.addEventListener("resize", function () {
@@ -723,23 +738,25 @@ function onPause(paus = true, full = false, isTab = false) {
             elem.style.animationPlayState = paus ? "paused" : "running";
         });
         isPaused = paus;
-    }
-    if (full) {
-        // console.log("weatcher")
-        isWeatherPaused = paus;
-        document.querySelectorAll(".water_anim").forEach((elem) => {
-            elem.style.animationPlayState = paus ? "paused" : "running";
-        });
-        document.querySelectorAll(".air_anim").forEach((elem) => {
-            elem.style.animationPlayState = paus ? "paused" : "running";
-        });
-        if (paus) {
-            menu.backgroundAudio.pause();
-        } else {
-            menu.playBackground();
+
+        if (full) {
+            // console.log("weatcher")
+            // alert("xui");
+            isWeatherPaused = paus;
+            document.querySelectorAll(".water_anim").forEach((elem) => {
+                elem.style.animationPlayState = paus ? "paused" : "running";
+            });
+            document.querySelectorAll(".air_anim").forEach((elem) => {
+                elem.style.animationPlayState = paus ? "paused" : "running";
+            });
+            if (paus) {
+                menu.backgroundAudio.pause();
+            } else {
+                menu.playBackground();
+            }
         }
+        document.querySelector(".pauseButton").src = isPaused ? "imgs/play_arrow_black_24dp.svg" : "imgs/pause_black_24dp.svg";
     }
-    document.querySelector(".pauseButton").src = isPaused ? "imgs/play_arrow_black_24dp.svg" : "imgs/pause_black_24dp.svg";
 }
 
 //
@@ -754,14 +771,14 @@ function gameInit(isStart = true) {
     _8__px = parseFloat(window.getComputedStyle(document.body).getPropertyValue('--8-px'));
     _current_8_px = document.documentElement.clientWidth * _8__px / 100;
 
-    if(document.documentElement.clientWidth < document.documentElement.clientHeight){
+    if (document.documentElement.clientWidth < document.documentElement.clientHeight) {
         document.body.querySelector(".game_buttons").className = "game_buttons button_type_1";
-        if(isMobile){
+        if (isMobile) {
             fullScreenCancel(document.body);
         }
-    }else{
+    } else {
         document.body.querySelector(".game_buttons").className = "game_buttons";
-        if(isMobile){
+        if (isMobile) {
             fullScreen(document.body);
         }
     }
@@ -775,7 +792,7 @@ function gameInit(isStart = true) {
             let floor = elem.querySelector(".floor");
             while (elem.offsetWidth < document.documentElement.clientWidth || elem.children.length % 2 === 0) {
                 elem.appendChild(floor.cloneNode(false));
-                 console.log("531");
+                console.log("531");
             }
         });
 
@@ -783,14 +800,14 @@ function gameInit(isStart = true) {
             let node = elem.querySelector(".node");
             while (elem.offsetWidth < document.documentElement.clientWidth || elem.children.length % 2 === 0) {
                 elem.appendChild(node.cloneNode(false));
-                 console.log("539");
+                console.log("539");
             }
         });
 
         let stone = stoneWrapper.querySelector(".stone");
         while (stoneWrapper.offsetWidth < document.documentElement.clientWidth || stoneWrapper.children.length % 2 === 0) {
             stoneWrapper.appendChild(stone.cloneNode(false));
-             console.log("547");
+            console.log("547");
         }
     }
 
@@ -800,10 +817,10 @@ function gameInit(isStart = true) {
     while (rect.top + bottomWrapper.offsetHeight + (isStart ? 0 : offset) < document.documentElement.clientHeight) {
         bottomWrapper.appendChild(stoneWrapper.cloneNode(true));
         offset += stoneWrapper.offsetHeight;
-         console.log(stoneWrapper.offsetHeight);
-         console.log("552");
-         console.log(document.documentElement.clientHeight);
-         console.log(rect.top + bottomWrapper.offsetHeight + offset);
+        console.log(stoneWrapper.offsetHeight);
+        console.log("552");
+        console.log(document.documentElement.clientHeight);
+        console.log(rect.top + bottomWrapper.offsetHeight + offset);
     }
     if (isStart) {
         let topWrapper = document.querySelector(".top_wrapper");
@@ -825,13 +842,13 @@ function gameInit(isStart = true) {
 }
 
 function fullScreen(element) {
-    if(element.requestFullscreen) {
+    if (element.requestFullscreen) {
         element.requestFullscreen();
     }
 }
 
 function fullScreenCancel() {
-    if(document.requestFullscreen) {
+    if (document.requestFullscreen) {
         document.requestFullscreen();
     }
 }
