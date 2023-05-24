@@ -20,10 +20,15 @@
     <link rel="preload" href="imgs/wall_anim_1.webp" as="image">
     <link rel="preload" href="imgs/wall_anim_2.webp" as="image">
     <link rel="preload" href="imgs/wall_anim_3.webp" as="image">
+    <script src="https://yandex.ru/games/sdk/v2"></script>
 </head>
 <body>
 <div class="top_wrapper">
     <div class="air_wrapper">
+        <div class="air_animation_wrapper">
+            <div class="air_animation_elem"></div>
+            <div class="air_animation_elem"></div>
+        </div>
     </div>
 
     <div class="floor_wrapper custom_wrapper">
@@ -66,6 +71,11 @@
         <img src="imgs/water.webp" class="water" alt="water"/>
         <img src="imgs/water.webp" class="water" alt="water"/>
         <img src="imgs/water.webp" class="water" alt="water"/>
+
+        <div class="air_animation_wrapper water_animation">
+            <div class="air_animation_elem"></div>
+            <div class="air_animation_elem"></div>
+        </div>
     </div>
     <img class="pauseButton" src="imgs/pause_black_24dp.svg" alt="pause">
     <img src="imgs/capy_walk_0_0.webp" class="capybara" alt="capy"/>
@@ -108,17 +118,21 @@
         <img src="imgs/node.webp" class="node" alt="node"/>
         <img src="imgs/node.webp" class="node" alt="node"/>
     </div>
-    <div class="stone_wrapper custom_wrapper">
-        <img src="imgs/stone.webp" class="stone" alt="stone"/>
-        <img src="imgs/stone.webp" class="stone" alt="stone"/>
-        <img src="imgs/stone.webp" class="stone" alt="stone"/>
-        <img src="imgs/stone.webp" class="stone" alt="stone"/>
-        <img src="imgs/stone.webp" class="stone" alt="stone"/>
-        <img src="imgs/stone.webp" class="stone" alt="stone"/>
-        <img src="imgs/stone.webp" class="stone" alt="stone"/>
-        <img src="imgs/stone.webp" class="stone" alt="stone"/>
-        <img src="imgs/stone.webp" class="stone" alt="stone"/>
-        <img src="imgs/stone.webp" class="stone" alt="stone"/>
+    <div class="wrapper_wrapper_stone">
+
+
+        <div class="stone_wrapper custom_wrapper">
+            <img src="imgs/stone.webp" class="stone" alt="stone"/>
+            <img src="imgs/stone.webp" class="stone" alt="stone"/>
+            <img src="imgs/stone.webp" class="stone" alt="stone"/>
+            <img src="imgs/stone.webp" class="stone" alt="stone"/>
+            <img src="imgs/stone.webp" class="stone" alt="stone"/>
+            <img src="imgs/stone.webp" class="stone" alt="stone"/>
+            <img src="imgs/stone.webp" class="stone" alt="stone"/>
+            <img src="imgs/stone.webp" class="stone" alt="stone"/>
+            <img src="imgs/stone.webp" class="stone" alt="stone"/>
+            <img src="imgs/stone.webp" class="stone" alt="stone"/>
+        </div>
     </div>
     <!--    <div class="zone">-->
 
@@ -137,8 +151,20 @@
 </div>
 
 <div class="game_start">
-    <div class="wrapper_start">
-        <div class="start_elem">
+    <div class="wrapper_start" style="transform: translateY(-100vh)">
+        <div class="start_elem new_live_dialog">
+            <div class="menu_container">
+                <div class="title_page">Дополнительная жизнь</div>
+                <div class="subtitle_page max_score">Посмотрите рекламный ролик, чтобы получить дополнительную жизнь</div>
+                <div class="new_live_wrapper">
+
+                </div>
+
+                <div class="button_page start">Посмотреть</div>
+                <div class="button_page setting">Нет</div>
+            </div>
+        </div>
+        <div class="start_elem start_dialog">
             <div class="menu_container">
                 <div class="title_page">Капибара и мандарины</div>
                 <div class="subtitle_page max_score">Максимальный счёт: 0</div>
@@ -172,12 +198,34 @@
                         </div>
                     </div>
 
-                    <div class="subtitle_page max_score left_align">Звуки: <div class="switch_button active" data-id="0"><div class="switch_toggle"></div></div></div>
-                    <div class="subtitle_page max_score left_align">Режим отладки: <div class="switch_button disable" data-id="1"><div class="switch_toggle"></div></div></div>
+                    <div class="subtitle_page max_score left_align">Звуки:
+                        <div class="switch_button active" data-id="0">
+                            <div class="switch_toggle"></div>
+                        </div>
+                    </div>
 
                     <div class="button_page start settings center_align">Готово</div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div draggable="false" class="game_buttons" style="display: none">
+    <div draggable="false" class="groups_button">
+        <div draggable="false" data-key="KeyW;KeyA" class="game_button">
+            <img draggable="false" src="imgs/button.webp" class="upright" alt="upright">
+        </div>
+        <div draggable="false" data-key="KeyS;KeyA" class="game_button">
+            <img draggable="false" src="imgs/button.webp" class="downright" alt="upright">
+        </div>
+    </div>
+    <div draggable="false" class="groups_button">
+        <div draggable="false" data-key="KeyW;KeyD" class="game_button">
+            <img draggable="false" src="imgs/button.webp" class="upleft" alt="upright">
+        </div>
+        <div draggable="false" data-key="KeyS;KeyD" class="game_button">
+            <img draggable="false" src="imgs/button.webp" class="downleft" alt="upright">
         </div>
     </div>
 </div>
@@ -187,26 +235,5 @@
 </div>
 
 <div class="hit_box_capy hit_box"></div>
-
-<!--Сложность Звуки Дебаг-->
-
-<div class="game_buttons" style="display: none">
-    <div class="groups_button">
-        <div data-key="KeyW;KeyA" class="game_button">
-            <img src="imgs/button.webp" class="upright" alt="upright">
-        </div>
-        <div  data-key="KeyS;KeyA" class="game_button">
-            <img src="imgs/button.webp" class="downright" alt="upright">
-        </div>
-    </div>
-    <div class="groups_button">
-        <div data-key="KeyW;KeyD" class="game_button">
-            <img src="imgs/button.webp" class="upleft" alt="upright">
-        </div>
-        <div data-key="KeyS;KeyD" class="game_button">
-            <img src="imgs/button.webp" class="downleft" alt="upright">
-        </div>
-    </div>
-</div>
 </body>
 </html>

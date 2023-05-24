@@ -11,9 +11,11 @@ let mandarines;
 
 let isDebug = false;
 let isMusic = true;
+let ysdk;
+
+let isNotViewRating = true;
 
 let isMobile = (/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i.test(navigator.userAgent));
-// let isMobile = true;
 
 class CapyPlayer {
     player;
@@ -23,6 +25,7 @@ class CapyPlayer {
     offsetStep = 1;
     directionX = 1;
     directionY = 0;
+    allButtons;
 
     keys = [];
 
@@ -37,43 +40,20 @@ class CapyPlayer {
             gameButtons.style.removeProperty("display");
 
             gameButtons.querySelectorAll(".game_button").forEach(elem => {
-                elem.addEventListener("pointerdown", () => {
-                    elem.children[0].src = "imgs/button_pressed.webp";
-                    elem.getAttribute("data-key").split(";").forEach(s => {
+                elem.addEventListener("touchstart", (e) => {
+                    e.target.children[0].src = "imgs/button_pressed.webp";
+                    e.target.getAttribute("data-key").split(";").forEach(s => {
                         if (!bot.isBot())
                             this.keys[s] = true;
                     });
                 });
-                elem.addEventListener("pointerup", () => {
-                    elem.children[0].src = "imgs/button.webp";
-                    // console.log("up");
-                    // alert("up")
-                    elem.getAttribute("data-key").split(";").forEach(s => {
+                elem.addEventListener("touchend", (e) => {
+                    e.target.children[0].src = "imgs/button.webp";
+                    e.target.getAttribute("data-key").split(";").forEach(s => {
                         if (!bot.isBot())
                             delete this.keys[s];
                     });
                 });
-                // let div = document.createElement("div");
-                // div.addEventListener("pointerleave", () => {
-                //    console.log("mouseenter");
-                // });
-                elem.addEventListener("pointerleave", () => {
-                    elem.children[0].src = "imgs/button.webp";
-                    // alert("leave")
-                    elem.getAttribute("data-key").split(";").forEach(s => {
-                        if (!bot.isBot())
-                            delete this.keys[s];
-                    });
-                });
-                // elem.addEventListener("mouseout", () => {
-                //    console.log("mouseout");
-                // });
-                // elem.addEventListener("mousemove", () => {
-                //    console.log("mousemove");
-                // });
-                // elem.addEventListener("mouseover", () => {
-                //    console.log("mouseover");
-                // });
             });
         }
 
@@ -105,70 +85,71 @@ class CapyPlayer {
         };
     }
 
+    timeLast;
+
     createAnim() {
-        setInterval(() => {
-            if (isPaused)
-                return;
-            let isMove = false;
-            let directChange = false;
-            if (this.keys["KeyW"]) {
-                this.directionY = 1;
-                directChange = true;
-            }
-            if (this.keys["KeyA"]) {
-                this.directionX = 1;
-                this.player.style.transform = "translate(-50%, -50%) scale(1, 1)";
-                isMove = true;
-            }
-            if (this.keys["KeyS"]) {
-                this.directionY = 0;
-                directChange = true;
-            }
-            if (this.keys["KeyD"]) {
-                this.directionX = -1;
-                this.player.style.transform = "translate(-50%, -50%) scale(-1, 1)";
-                isMove = true;
-            }
+        if (isPaused)
+            return;
+        let isMove = false;
+        let directChange = false;
+        if (this.keys["KeyW"]) {
+            this.directionY = 1;
+            directChange = true;
+        }
+        if (this.keys["KeyA"]) {
+            this.directionX = 1;
+            this.player.style.transform = "translate(-50%, -50%) scale(1, 1)";
+            isMove = true;
+        }
+        if (this.keys["KeyS"]) {
+            this.directionY = 0;
+            directChange = true;
+        }
+        if (this.keys["KeyD"]) {
+            this.directionX = -1;
+            this.player.style.transform = "translate(-50%, -50%) scale(-1, 1)";
+            isMove = true;
+        }
 
-            if (!isMove && this.state !== 0) {
+        if (!isMove && this.state !== 0) {
+            this.player.src = "imgs/capy_walk_" + this.directionY + "_0.webp";
+        }
+
+        if (!isMove) {
+            if (directChange) {
                 this.player.src = "imgs/capy_walk_" + this.directionY + "_0.webp";
             }
+            return;
+        }
 
-            if (!isMove) {
-                if (directChange) {
-                    this.player.src = "imgs/capy_walk_" + this.directionY + "_0.webp";
-                }
-                return;
-            }
-
-            this.position -= this.directionX * this.offsetStep;
-            if ((this.position < 105 && this.directionX === 1) || (this.position > 135 && this.directionX === -1)) {
-                // let playerOffset = this.player.offsetWidth / 2;
-                // if ((this.position < this.player.offsetWidth / 2 && this.directionX === 1) || (this.position > this.parentField.offsetWidth - playerOffset && this.directionX === -1)) {
-                this.player.src = "imgs/capy_walk_" + this.directionY + "_0.webp";
-                this.position = this.directionX === 1 ? 105 : 135;
-                this.player.style.left = "calc(" + this.position + " * var(--8-px))";
-                // this.position += this.directionX * this.offsetStep
-                return;
-            }
-
-
-            this.state++;
-            if (this.state > 3)
-                this.state = 0;
-            this.player.src = "imgs/capy_walk_" + this.directionY + "_" + this.state + ".webp";
-            this.player.alt = "imgs/capy_walk_" + this.directionY + "_" + this.state + ".webp";
-
-            if (isMusic) {
-                let walkAudio = new Audio("music/walk_" + parseInt(Math.random() * 6) + ".aac");
-                walkAudio.volume = 0.3;
-                walkAudio.play();
-            }
-
+        this.position -= this.directionX * this.offsetStep;
+        if ((this.position < 105 && this.directionX === 1) || (this.position > 135 && this.directionX === -1)) {
+            this.player.src = "imgs/capy_walk_" + this.directionY + "_0.webp";
+            this.position = this.directionX === 1 ? 105 : 135;
             this.player.style.left = "calc(" + this.position + " * var(--8-px))";
-            this.player.style.bottom = this.state % 2 !== 0 ? "calc(-25 * var(--8-px))" : "calc(-25 * var(--8-px))";
-            // this.player.style.top = this.state % 2 !== 0 ? "calc(50% - 0.3191489361702128vh)" : "50%";
-        }, 60);
+            return;
+        }
+
+
+        this.state++;
+        if (this.state > 3)
+            this.state = 0;
+        this.player.src = "imgs/capy_walk_" + this.directionY + "_" + this.state + ".webp";
+        this.player.alt = "imgs/capy_walk_" + this.directionY + "_" + this.state + ".webp";
+
+        if (isMusic) {
+            let walkAudio = new Audio("music/walk_" + parseInt(Math.random() * 6) + ".aac");
+            walkAudio.volume = 0.3;
+            walkAudio.play();
+        }
+
+        this.player.style.left = "calc(" + this.position + " * var(--8-px))";
+        this.player.style.bottom = this.state % 2 !== 0 ? "calc(-25 * var(--8-px))" : "calc(-25 * var(--8-px))";
+
+        if (isDebug) {
+            mandarines.scorePage.innerText = new Date().getTime() - this.timeLast;
+            this.timeLast = new Date().getTime();
+        }
     }
 }
 
@@ -179,8 +160,8 @@ class Mandarines {
     mandarinWrapper;
     time = 5;
     loseWrapper;
-    mandarines = new Map();
     scorePage;
+    count = 0;
 
     last = {
         wall: -1,
@@ -191,7 +172,6 @@ class Mandarines {
     hit_box_capy;
 
     constructor() {
-        // let speedWater = this.animAir.offsetWidth / (20 * 1000)
 
         this.mandarinWrapper = document.querySelector(".mandarines_container");
         this.scorePage = document.querySelector(".score_page");
@@ -199,95 +179,85 @@ class Mandarines {
         this.hit_box_mad = document.querySelector(".hit_box_mad");
         this.loseWrapper = document.querySelector(".lose_wrapper");
         this.hit_box_capy = document.querySelector(".hit_box_capy");
-        setInterval(() => {
-            if (isPaused)
-                return;
-            if (this.mandarines.size < this.random) {
-                let random = parseInt(Math.random() * 4, 10).toString();
-                // let random = "2";
-                // if(random < 2)
-                //     random = 0;
-                // else
-                //     random = 2;
+    }
 
-                let dat = new Date().getTime();
-                //111
+    hitBoxMandarineCycle() {
+        let rectCapy = capy.getCarrete();
 
-                if (this.last.wall !== -1) {
-                    let otherTime = (111 / (capy.offsetStep * 60) * 1000) * 1.5;
-                    if (this.last.time + otherTime > dat) {
-                        return;
-                    }
-                }
-                this.last.wall = random;
-                this.last.time = dat;
-                let mand = document.createElement("img");
-
-                let index = (Math.random() * 1000).toString();
-
-                mand.src = "imgs/mandarin.webp";
-                mand.className = "mandarin";
-                mand.setAttribute("id", index);
-                mand.setAttribute("wall", random);
-                mand.style.animation = "anim_wall_" + random + " " + this.time + "s linear forwards";
-                this.mandarinWrapper.appendChild(mand);
-
-                this.mandarines.set(index, mand);
-
-                mand.addEventListener("animationend", () => {
-                    let id = mand.getAttribute("id");
-                    if (this.mandarines.has(id)) {
-                        let elemRect = mand.getBoundingClientRect();
-                        let time = (backGround.animWater.offsetWidth - elemRect.left) * 20 / backGround.animWater.offsetWidth;
-                        this.addLose();
-                        this.mandarines.delete(mand.getAttribute("id"));
-                        mand.style.animation = "anim_wall_water_" + mand.getAttribute("wall") + " " + time + "s linear forwards";
-                        mand.setAttribute("wall", "-1");
-                    } else
-                        mand.remove();
-                    // mand.addEventListener("animationend", () => {
-                    //     mand.remove();
-                    // }, false);
-                }, false);
+        let arr = this.mandarinWrapper.children;
+        let mandarine = null;
+        for (let i = 0; i < arr.length; i++) {
+            if (parseInt(arr[i].getAttribute("wall")) !== -1) {
+                mandarine = arr[i];
+                break;
             }
-        }, 60);
+        }
+        if (mandarine == null)
+            return;
+        if (isDebug) {
+            this.hit_box_capy.style.top = rectCapy.top + "px";
+            this.hit_box_capy.style.left = rectCapy.left + "px";
+            this.hit_box_capy.style.width = rectCapy.right + "px";
+            this.hit_box_capy.style.height = rectCapy.bottom + "px";
+        }
 
-        setInterval(() => {
-            // if (isPaused)
-            //     return;
-            let rectCapy = capy.getCarrete();
-            this.mandarines.forEach(elem => {
+        let elemRect = mandarine.getBoundingClientRect();
+        if (isDebug) {
+            this.hit_box_mad.style.top = (elemRect.top) + "px";
+            this.hit_box_mad.style.left = elemRect.left + "px";
+            this.hit_box_mad.style.width = elemRect.width + "px";
+            this.hit_box_mad.style.height = elemRect.height + "px";
+        }
 
-                if (isDebug) {
-                    this.hit_box_capy.style.top = rectCapy.top + "px";
-                    this.hit_box_capy.style.left = rectCapy.left + "px";
-                    this.hit_box_capy.style.width = rectCapy.right + "px";
-                    this.hit_box_capy.style.height = rectCapy.bottom + "px";
+        if ((Math.max(Math.abs(elemRect.bottom - rectCapy.top), Math.abs(rectCapy.top + rectCapy.bottom - elemRect.top)) <= elemRect.height + rectCapy.bottom) && (Math.max(Math.abs(elemRect.right - rectCapy.left), Math.abs(rectCapy.left + rectCapy.right - elemRect.left)) <= elemRect.width + rectCapy.right)) {
+            if (mandarine.getAttribute("wall") % 2 === capy.directionY % 2)
+                return;
+            this.addWin();
+            mandarine.remove();
+            this.count--;
+        }
+    }
+
+    spawnMandarineCycle() {
+        if (isPaused)
+            return;
+        if (this.count < this.random) {
+            let random = parseInt(Math.random() * 4, 10).toString();
+
+            let dat = new Date().getTime();
+
+            if (this.last.wall !== -1) {
+                let otherTime = (111 / (capy.offsetStep * 60) * 1000) * 1.5;
+                if (this.last.time + otherTime > dat) {
+                    return;
                 }
+            }
+            this.last.wall = random;
+            this.last.time = dat;
+            let mand = document.createElement("img");
 
-                let elemRect = elem.getBoundingClientRect();
-                if (isDebug) {
-                    this.hit_box_mad.style.top = (elemRect.top) + "px";
-                    // this.hit_box_mad.style.left = elemRect.left + elemRect.height * 0.25 + "px";
-                    this.hit_box_mad.style.left = elemRect.left + "px";
-                    this.hit_box_mad.style.width = elemRect.width + "px";
-                    this.hit_box_mad.style.height = elemRect.height + "px";
-
-                    // console.log("elem = " + isPaused);
-                    // console.log((elemRect.top));
-                    // console.log((elemRect.left));
-                    // console.log((""));
-                }
-
-                if ((Math.max(Math.abs(elemRect.bottom - rectCapy.top), Math.abs(rectCapy.top + rectCapy.bottom - elemRect.top)) <= elemRect.height + rectCapy.bottom) && (Math.max(Math.abs(elemRect.right - rectCapy.left), Math.abs(rectCapy.left + rectCapy.right - elemRect.left)) <= elemRect.width + rectCapy.right)) {
-                    if (elem.getAttribute("wall") % 2 === capy.directionY % 2)
-                        return;
-                    this.addWin();
-                    this.mandarines.delete(elem.getAttribute("id"));
-                    elem.remove();
-                }
-            });
-        }, 10);
+            mand.src = "imgs/mandarin.webp";
+            mand.className = "mandarin";
+            mand.setAttribute("wall", random);
+            mand.style.animation = "anim_wall_" + random + " " + this.time + "s linear forwards";
+            this.mandarinWrapper.appendChild(mand);
+            this.count++;
+            mand.addEventListener("animationend", () => {
+                let id = mand.getAttribute("wall");
+                if (id !== "-1") {
+                    this.count--;
+                    let elemRect = mand.getBoundingClientRect();
+                    let time = (backGround.animWater.offsetWidth - elemRect.left) * 20 / backGround.animWater.offsetWidth;
+                    this.addLose();
+                    mand.style.animation = "anim_wall_water_" + mand.getAttribute("wall") + " " + time + "s linear forwards";
+                    if (isPaused) {
+                        mand.style.animationPlayState = "paused";
+                    }
+                    mand.setAttribute("wall", "-1");
+                } else
+                    mand.remove();
+            }, false);
+        }
     }
 
     addLose() {
@@ -309,7 +279,8 @@ class Mandarines {
 
         this.animBar();
         if (this.loseWrapper.children.length < this.mandarinLose) {
-            this.gameOver();
+            menu.saveGameOver();
+            //this.gameOver();
         } else {
             this.loseWrapper.children[this.mandarinLose - 1].src = "imgs/mandarin_not.webp";
         }
@@ -340,38 +311,36 @@ class Mandarines {
         this.random = 1 + parseInt(this.mandarinWin / 15);
         if (difficult !== 2)
             this.random = Math.min(this.random, difficult === 0 ? 4 : 8);
-        capy.offsetStep = 1 + this.mandarinWin / 30;
-        // console.log("speed = " + capy.offsetStep);
+        capy.offsetStep = Math.min((difficult === 0) ? 5 : (difficult === 1 ? 8 : 20), 1 + this.mandarinWin / 30);
         this.time = 5 - this.mandarinWin / 30;
         let minValue = 2;
         if (difficult >= 1)
             minValue = 1;
-        // else if(difficult === 2)
-        // minValue = (111 / (capy.offsetStep * 60)) * 3;
-        // console.log("min = " + minValue);
-        // if (difficult !== 2)
         this.time = Math.max(this.time, minValue);
     }
 
     gameOver() {
         onPause(true);
         capy.reset();
-        this.mandarinWrapper.innerHTML = "";
-        this.mandarines.clear();
         menu.gaveEnd(this.mandarinWin);
 
-        this.mandarinLose = 0;
         this.mandarinWin = 0;
-        for (let i = 0; i < this.loseWrapper.children.length; i++)
-            this.loseWrapper.children[i].src = "imgs/mandarin.webp";
+
+        this.gameClear();
         this.scorePage.innerText = "Счёт: 0";
         this.random = 1;
         this.time = 5;
     }
+
+    gameClear() {
+        this.mandarinWrapper.innerHTML = "";
+        this.mandarinLose = 0;
+        for (let i = 0; i < this.loseWrapper.children.length; i++)
+            this.loseWrapper.children[i].src = "imgs/mandarin.webp";
+    }
 }
 
 class Bot {
-    botInr;
     is = false;
 
     constructor() {
@@ -380,41 +349,38 @@ class Bot {
 
     start() {
         this.is = true;
-        this.botInr = setInterval(() => {
-            let arr = mandarines.mandarinWrapper.children;
-            let wall = -1;
-            for (let i = 0; i < arr.length; i++) {
-                wall = parseInt(arr[i].getAttribute("wall"));
-                if (wall !== -1)
-                    break;
-            }
-            // capy.keys[event.code] = true;
+    }
 
-            // delete this.keys[event.co    de];
-            if (wall === -1)
-                return;
+    botII() {
+        let arr = mandarines.mandarinWrapper.children;
+        let wall = -1;
+        for (let i = 0; i < arr.length; i++) {
+            wall = parseInt(arr[i].getAttribute("wall"));
+            if (wall !== -1)
+                break;
+        }
+        if (wall === -1)
+            return;
 
-            capy.keys = [];
-            switch (wall) {
-                case 0:
-                    capy.keys["KeyW"] = true;
-                    capy.keys["KeyA"] = true;
-                    break;
-                case 1:
-                    capy.keys["KeyS"] = true;
-                    capy.keys["KeyA"] = true;
-                    break;
-                case 2:
-                    capy.keys["KeyW"] = true;
-                    capy.keys["KeyD"] = true;
-                    break;
-                case 3:
-                    capy.keys["KeyS"] = true;
-                    capy.keys["KeyD"] = true;
-                    break;
-            }
-
-        }, 10);
+        capy.keys = [];
+        switch (wall) {
+            case 0:
+                capy.keys["KeyW"] = true;
+                capy.keys["KeyA"] = true;
+                break;
+            case 1:
+                capy.keys["KeyS"] = true;
+                capy.keys["KeyA"] = true;
+                break;
+            case 2:
+                capy.keys["KeyW"] = true;
+                capy.keys["KeyD"] = true;
+                break;
+            case 3:
+                capy.keys["KeyS"] = true;
+                capy.keys["KeyD"] = true;
+                break;
+        }
     }
 
     isBot() {
@@ -423,7 +389,6 @@ class Bot {
 
     end() {
         if (bot.isBot()) {
-            clearInterval(this.botInr);
             this.is = false;
         }
     }
@@ -442,69 +407,103 @@ class BackGround {
     constructor() {
         this.wallWater = document.querySelectorAll(".wall_anim");
         this.water = document.querySelectorAll(".water");
-        this.animWater = document.querySelector(".water_wrapper");
-        this.animAir = document.querySelector(".air_wrapper");
-        this.animBackground();
+        this.animWater = document.querySelector(".water_wrapper .air_animation_wrapper");
+        this.animAir = document.querySelector(".air_wrapper .air_animation_wrapper");
+
+        for (let i = this.animAir.children.length - 1; i >= 0; i--)
+            this.animWeatherMethod(this.animAir.children[i]);
+
+        this.animAir.style.transition = "transform " + (timeCloud) + "ms linear";
+        this.animAir.style.transform = "translateX(0)";
+
+        for (let i = this.animWater.children.length - 1; i >= 0; i--)
+            this.animWaterMethod(this.animWater.children[i]);
+
+        this.animWater.style.transition = "transform " + (timeWater) + "ms linear";
+        this.animWater.style.transform = "translateX(0)";
     }
 
-    animBackground() {
-        // console.log("8px");
-        // console.log(_8__px)
-        // console.log(_current_8_px)
+    animWeatherMethodRestart() {
+        this.animAir.children[1].innerHTML = "";
+        this.animWeatherMethod(this.animAir.children[1]);
+        this.animAir.insertBefore(this.animAir.children[1], this.animAir.children[0]);
+        this.animAir.style.removeProperty("transition");
+        this.animAir.style.removeProperty("transform");
+        setTimeout(() => {
+            this.animAir.style.transition = "transform " + (timeCloud) + "ms linear";
+            this.animAir.style.transform = "translateX(0)";
+        }, 10);
+    }
 
-        let speedWater = this.animWater.offsetWidth / (20 * 1000)
-        let timeWater = Math.ceil(_current_8_px / speedWater);
-        setInterval(() => {
-            if (isWeatherPaused)
-                return;
-            this.state++;
-            if (this.state > 3)
-                this.state = 0;
-            this.wallWater.forEach(elem => {
-                elem.src = "imgs/wall_anim_" + this.state + ".webp";
-            });
-        }, 100);
+    animWaterMethodRestart() {
+        this.animWater.children[1].innerHTML = "";
+        this.animWaterMethod(this.animWater.children[1]);//animWaterMethod
+        this.animWater.insertBefore(this.animWater.children[1], this.animWater.children[0]);
+        this.animWater.style.removeProperty("transition");
+        this.animWater.style.removeProperty("transform");
+        setTimeout(() => {
+            this.animWater.style.transition = "transform " + (timeWater) + "ms linear";
+            this.animWater.style.transform = "translateX(0)";
+        }, 10);
+    }
 
-        setInterval(() => {
-            if (isWeatherPaused)
-                return;
-            if (Math.random() <= 0.5) {
-                let div = document.createElement("div");
-                div.className = "water_anim";
-                div.style.bottom = "calc(" + parseInt(Math.random() * 19, 10) + " * var(--8-px))";
-                div.style.width = "calc(" + parseInt(Math.random() * 5, 10) + " * var(--8-px) + var(--8-px))";
-                div.addEventListener("animationend", () => {
-                    div.remove();
-                }, false);
-                this.animWater.appendChild(div);
-            }
-        }, timeWater);
-        // console.log(timeWater)
-        let speedCloud = this.animAir.offsetWidth / (30 * 1000)
-        let timeCloud = Math.ceil(_current_8_px / speedCloud);
+    animWeatherMethod(parent) {
+        // if (isWeatherPaused)
+        //     return;
 
-        setInterval(() => {
-            if (isWeatherPaused)
-                return;
+
+        for (let i = 0; i < 120; i++) {
             let rand = parseInt((Math.random() * 3), 10);
             let local = this.dataOffset[rand];
             if (this.offset * 8 > this.animAir.offsetHeight / 2 && local > 0)
                 local *= -1;
             this.offset += local;
 
+            // alert(this.offset)
             if (this.offset < 0)
                 this.offset = 0;
-            if (this.offset !== 0) {
-                let div = document.createElement("div");
-                div.className = "air_anim";
+            // if (this.offset !== 0) {
+            let div = document.createElement("div");
+            div.className = "air_anim";
+            if (this.offset !== 0)
                 div.style.height = "calc(" + this.offset + " * var(--8-px))";
-                div.addEventListener("animationend", () => {
-                    div.remove();
-                }, false);
-                this.animAir.appendChild(div);
-            }
-        }, timeCloud);
-        // console.log(timeCloud)
+            else
+                div.style.background = "transparent";
+            div.addEventListener("animationend", () => {
+                div.remove();
+            }, false);
+            parent.appendChild(div);
+            // }
+        }
+    }
+
+    animWaterMethod(parent) {
+        let offsetWrapper = 0;
+        for (let i = 0; offsetWrapper < 240; i++) {
+            // if (Math.random() <= 0.5) {
+            let div = document.createElement("div");
+            div.className = "water_anim";
+            div.style.marginBottom = "calc(" + parseInt(Math.random() * 19, 10) + " * var(--8-px))";
+            let wew = parseInt(Math.random() * 5 + 1, 10);
+            offsetWrapper += wew;
+            div.style.width = "calc(" + wew + " * var(--8-px) + var(--8-px))";
+            div.addEventListener("animationend", () => {
+                div.remove();
+            }, false);
+            parent.appendChild(div);
+            // }
+        }
+    }
+
+    animBackground() {
+        if (isWeatherPaused)
+            return;
+        this.state++;
+        if (this.state > 3)
+            this.state = 0;
+        this.wallWater.forEach(elem => {
+            elem.src = "imgs/wall_anim_" + this.state + ".webp";
+        });
     }
 }
 
@@ -517,6 +516,11 @@ class Menu {
     maxScore
     isOpen = false;
     backgroundAudio = new Audio('music/background.aac');
+
+    buttonNewLiveAccept;
+    buttonNewLiveCancel;
+    startWrapper
+    newLiveWrapper;
 
 
     //settings
@@ -538,7 +542,11 @@ class Menu {
         });
 
         this.menu = document.querySelector(".game_start");
-        this.subtitlePage = document.querySelector(".subtitle_page.max_score");
+        this.startWrapper = this.menu.querySelector(".wrapper_start");
+        this.newLiveWrapper = this.startWrapper.querySelector(".new_live_wrapper");
+        this.subtitlePage = document.querySelector(".start_dialog .subtitle_page.max_score");
+        this.buttonNewLiveAccept = document.querySelector(".new_live_dialog .button_page.start");
+        this.buttonNewLiveCancel = document.querySelector(".new_live_dialog .button_page.setting");
         this.localScore = document.querySelector(".subtitle_page.local_score");
 
         this.maxScore = localStorage.getItem("max_score");
@@ -551,7 +559,7 @@ class Menu {
             onPause(!isPaused, true);
         }
 
-        this.menu.querySelector(".button_page.start").onclick = () => {
+        this.menu.querySelector(".start_dialog .button_page.start").onclick = () => {
             this.startGame();
         };
         this.menu.querySelectorAll(".button_page.settings").forEach(elem => {
@@ -587,7 +595,6 @@ class Menu {
                         break;
                 }
             }
-            // console.log(value);
             let isActive = !(/active/.test(elem.className));
             if (isActive === (value === "1"))
                 this.switchClick(elem);
@@ -604,6 +611,17 @@ class Menu {
         this.initDif();
 
         localStorage.setItem("difficult", difficult);
+    }
+
+    cycleMusic() {
+        if (!isMusic)
+            return;
+        if (isWeatherPaused)
+            return;
+        if (menu.backgroundAudio.currentTime >= menu.backgroundAudio.duration - 0.5) {
+            menu.backgroundAudio = new Audio('music/background.aac');
+            menu.playBackground();
+        }
     }
 
     initDif() {
@@ -645,12 +663,15 @@ class Menu {
         }
     }
 
+    isSettings = false;
+
     settings() {
-        let elem = this.menu.querySelector(".wrapper_start");
-        if (elem.style.transform)
-            elem.style.removeProperty("transform");
+        if (this.isSettings)
+            this.startWrapper.style.transform = "translateY(-100vh)";
         else
-            elem.style.transform = "translateY(-100vh)";
+            this.startWrapper.style.transform = "translateY(-200vh)";
+
+        this.isSettings = !this.isSettings;
     }
 
     startGame(isBot = false) {
@@ -677,38 +698,111 @@ class Menu {
 
         this.backgroundAudio.volume = 0.3;
         this.backgroundAudio.play();
-        this.playBackground_local();
     }
 
-    playBackground_local() {
-        if (!isMusic)
-            return;
-        if (isWeatherPaused)
-            return;
-        if (this.backgroundAudio.currentTime >= this.backgroundAudio.duration - 0.5) {
-            this.backgroundAudio = new Audio('music/background.aac');
-            this.playBackground();
-        } else {
-            requestAnimationFrame(() => {
-                menu.playBackground_local();
-            });
+    saveGameOver() {
+        // isPaused = true;
+        // setTimeout(() => {
+        onPause(true);
+        // }, 10)
+        this.isOpen = true;
+        this.pauseButton.style.opacity = "0";
+        this.startWrapper.style.transform = "translateY(0)";
+        bot.end();
+
+        this.startWrapper.querySelector(".new_live_wrapper").innerHTML = `<img src="imgs/mandarin.webp" alt="mandarin_lose" class="mandarin_lose">
+                    <img src="imgs/mandarin.webp" alt="mandarin_lose" class="mandarin_lose">
+                    <img src="imgs/mandarin.webp" alt="mandarin_lose" class="mandarin_lose">
+                    <img src="imgs/mandarin.webp" alt="mandarin_lose" class="mandarin_lose">
+                    <img src="imgs/mandarin.webp" alt="mandarin_lose" class="mandarin_lose">
+                    <img src="imgs/mandarin.webp" alt="mandarin_lose" class="mandarin_lose">`;
+
+        this.buttonNewLiveAccept.onclick = () => {
+            ysdk.adv.showRewardedVideo({
+                callbacks: {
+                    onOpen: () => {
+
+                    },
+                    onRewarded: () => {
+
+                    },
+                    onClose: () => {
+                        this.newLiveActive();
+                    },
+                    onError: (e) => {
+                        console.log('Error while open video ad:', e);
+                    }
+                }
+            })
         }
+        this.buttonNewLiveCancel.onclick = () => {
+            this.startWrapper.style.transform = "translateY(-100vh)";
+            mandarines.gameOver();
+        }
+
+        this.menu.style.transform = "translateY(0%)";
+        this.localScore.style.removeProperty("display");
+    }
+
+    newLiveActive() {
+        setTimeout(() => {
+            if (this.newLiveWrapper.children.length === 1) {
+                mandarines.gameClear();
+                this.pauseButton.style.opacity = "1";
+                this.startWrapper.style.transform = "translateY(-100vh)";
+                this.isOpen = false;
+                this.menu.style.transform = "translateY(-100%)";
+                onPause(false);
+            } else {
+                this.newLiveWrapper.children[this.newLiveWrapper.children.length - 1].remove();
+                this.newLiveActive();
+            }
+        }, 500);
     }
 
     gaveEnd(score) {
         this.isOpen = true;
         this.pauseButton.style.opacity = "0";
-        if (!bot.isBot())
+        if (!bot.isBot()) {
             this.maxScore = Math.max(this.maxScore, score);
+        }
 
-        bot.end()
+        bot.end();
+
+        if (isNotViewRating) {
+            ysdk.feedback.canReview()
+                .then(({value, reason}) => {
+                    if (value) {
+                        ysdk.feedback.requestReview()
+                    }
+                })
+        }
+
+        ysdk.isAvailableMethod('leaderboards.getLeaderboardPlayerEntry').then(value => {
+            if (value) {
+                ysdk.getLeaderboards()
+                    .then(lb => {
+                        lb.setLeaderboardScore('allscore', this.maxScore);
+                    });
+            }
+        });
+
+        ysdk.adv.showFullscreenAdv({
+            callbacks: {
+                onClose: function (wasShown) {
+
+                },
+                onError: function (error) {
+
+                }
+            }
+        })
 
         localStorage.setItem("max_score", this.maxScore);
 
         this.menu.style.transform = "translateY(0%)";
         this.menu.querySelector(".title_page").innerText = "Игра окончена";
         this.localScore.style.removeProperty("display");
-        // console.log("Текущий счёт: " + score);
         this.localScore.innerText = "Текущий счёт: " + score;
         this.subtitlePage.innerText = "Максимальный счёт: " + this.maxScore;
     }
@@ -719,17 +813,14 @@ window.addEventListener("load", () => {
 });
 
 document.addEventListener("visibilitychange", function () {
-    // if (document.hidden)
-    // console.log("gidden = " + document.hidden);
     onPause(document.hidden, true, true);
 });
 window.addEventListener("resize", function () {
-    // alert("resize");
     gameInit(false);
 });
 
 function onPause(paus = true, full = false, isTab = false) {
-    if (menu.isOpen)
+    if (menu.isOpen && !isTab)
         return;
     if (!(isTab && !paus)) {
         document.querySelectorAll(".mandarin").forEach((elem) => {
@@ -738,14 +829,7 @@ function onPause(paus = true, full = false, isTab = false) {
         isPaused = paus;
 
         if (full) {
-            // console.log("weatcher")
             isWeatherPaused = paus;
-            document.querySelectorAll(".water_anim").forEach((elem) => {
-                elem.style.animationPlayState = paus ? "paused" : "running";
-            });
-            document.querySelectorAll(".air_anim").forEach((elem) => {
-                elem.style.animationPlayState = paus ? "paused" : "running";
-            });
             if (paus) {
                 menu.backgroundAudio.pause();
             } else {
@@ -756,13 +840,11 @@ function onPause(paus = true, full = false, isTab = false) {
     }
 }
 
-//
-// function resize(){
-//     _8__px = parseFloat(window.getComputedStyle(document.body).getPropertyValue('--8-px'));
-//     _current_8_px = document.documentElement.clientWidth * _8__px / 100;
-//     airInit();
-//     console.log("resize");
-// }
+// let speedCloud;
+let timeCloud = 30 * 1000;
+
+// let speedWater;
+let timeWater = 20 * 1000;
 
 function gameInit(isStart = true) {
     _8__px = parseFloat(window.getComputedStyle(document.body).getPropertyValue('--8-px'));
@@ -784,58 +866,30 @@ function gameInit(isStart = true) {
 
     let stoneWrapper = bottomWrapper.querySelector(".stone_wrapper");
 
-//    if (isStart) {
-////        document.querySelectorAll(".floor_wrapper").forEach(elem => {
-////            let floor = elem.querySelector(".floor");
-//////            while (elem.offsetWidth < document.documentElement.clientWidth || elem.children.length % 2 === 0) {
-//////                elem.appendChild(floor.cloneNode(false));
-//////                console.log("531");
-//////            }
-////        });
-//
-////        document.querySelectorAll(".node_wrapper").forEach(elem => {
-////            let node = elem.querySelector(".node");
-//////            while (elem.offsetWidth < document.documentElement.clientWidth || elem.children.length % 2 === 0) {
-//////                elem.appendChild(node.cloneNode(false));
-//////                console.log("539");
-//////            }
-////        });
-//
-////        let stone = stoneWrapper.querySelector(".stone");
-//////        while (stoneWrapper.offsetWidth < document.documentElement.clientWidth || stoneWrapper.children.length % 2 === 0) {
-//////            stoneWrapper.appendChild(stone.cloneNode(false));
-//////            console.log("547");
-//////        }
-//    }
-
     let rect = bottomWrapper.getBoundingClientRect();
     let stone = stoneWrapper.querySelector(".stone");
     let imageStone = new Image();
     imageStone.src = stone.src;
     imageStone.onload = () => {
-            while (rect.top + bottomWrapper.offsetHeight < document.documentElement.clientHeight) {
-                bottomWrapper.appendChild(stoneWrapper.cloneNode(true));
-            }
+        while (rect.top + stoneWrapper.parentNode.offsetHeight < document.documentElement.clientHeight) {
+            stoneWrapper.parentNode.appendChild(stoneWrapper.cloneNode(true));
+        }
     }
-//    let offset = 0;
-    // alert(stoneWrapper.offsetHeight);
-
-    // if (isStart) {
-        // let topWrapper = document.querySelector(".top_wrapper");
-
-        // let waterWrapper = topWrapper.querySelector(".water_wrapper");
-        // let water = waterWrapper.querySelector(".water");
-//        while (waterWrapper.offsetWidth < document.documentElement.clientWidth) {
-//            console.log("792");
-//            waterWrapper.appendChild(water.cloneNode(false));
-//        }
-//     }
     airInit();
     if (isStart) {
         bot = new Bot();
         backGround = new BackGround();
         menu = new Menu();
         capy = new CapyPlayer();
+        YaGames
+            .init()
+            .then(_sdk => {
+                ysdk = _sdk;
+
+                ysdk.features.LoadingAPI?.ready();
+            }).catch(console.error);
+
+        mainLoop();
     }
 }
 
@@ -878,4 +932,47 @@ function airInit() {
         airWaW.style.background = "rgba(" + rEnd + " , " + gEnd + ", " + bEnd + ")";
         airWrapper.appendChild(airWaW);
     }
+}
+
+let lastMoveTime = 60;
+let lastWeatherTime = timeCloud;
+let lastWaterTime = timeWater;
+let lastBackgroundTime = 100;
+let lastMandarineSpawnTime = 60;
+let lastBotII = 60;
+
+function mainLoop() {
+    let localTime = new Date().getTime();
+
+    if (localTime - lastMoveTime >= 60) {
+        capy.createAnim();
+        lastMoveTime = localTime;
+    }
+    if (localTime - lastWeatherTime >= timeCloud) {
+        backGround.animWeatherMethodRestart();
+        lastWeatherTime = localTime;
+    }
+    if (localTime - lastWaterTime >= timeWater) {
+        backGround.animWaterMethodRestart();
+        lastWaterTime = localTime;
+    }
+    if (localTime - lastBackgroundTime >= 100) {
+        backGround.animBackground();
+        lastBackgroundTime = localTime;
+    }
+    if (mandarines != null && localTime - lastMandarineSpawnTime >= 60) {
+        mandarines.spawnMandarineCycle();
+        lastMandarineSpawnTime = localTime;
+    }
+    if (mandarines != null) {
+        mandarines.hitBoxMandarineCycle();
+    }
+    if (bot.isBot() && localTime - lastBotII >= 60) {
+        bot.botII();
+        lastBotII = localTime;
+    }
+
+    menu.cycleMusic();
+
+    requestAnimationFrame(mainLoop);
 }

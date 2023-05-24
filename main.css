@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;500&display=swap');
 
 * {
+    box-sizing: border-box;
     font-family: 'Inter', sans-serif;
     margin: 0;
     padding: 0;
@@ -10,7 +11,8 @@
     --8-px: 0.4166666666666667vw;
     --8-vh-px: 0.851063829787234vh;
 
-    --8-procent: calc((var(--8-vh-px) + var(--8-px)) / 2)
+    --8-procent: calc((var(
+    --8-vh-px) + var(--8-px)) / 2)
 }
 
 /*temp*/
@@ -93,7 +95,7 @@ body {
     /*    background: rgb(255,255,255);*/
     /*    background: linear-gradient(0deg, rgb(255,255,255) 0%, rgb(122, 218, 252) 100%);*/
     overflow: hidden;
-    width: 102%;
+    width: 100%;
     height: 100%;
     display: flex;
     justify-content: flex-start;
@@ -101,8 +103,33 @@ body {
     position: relative;
 }
 
+.air_animation_wrapper{
+    width: auto;
+    transform: translateX(-100vw);
+    height: calc(100% - 2 * var(--8-px));
+    position: absolute;
+    display: flex;
+    /*background: red;*/
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+}
+
+.air_animation_wrapper.water_animation{
+    height: calc(100%);
+}
+
+.air_animation_elem{
+    width: 100vw;
+    height: 100%;
+    display: flex;
+    /*background: blue;*/
+    align-items: flex-end;
+    flex-direction: row-reverse;
+}
+
 .water_wrapper {
-    /*width: 100vw;*/
+    width: 100vw;
     display: flex;
     justify-content: flex-start;
     flex-direction: row;
@@ -115,20 +142,20 @@ body {
     width: 8px;
     height: var(--8-px);
     background: #97b5fc;
-    position: absolute;
-    left: 0;
-    bottom: 25%;
-    animation: animWater 20s linear;
+    /*position: absolute;*/
+    /*left: 0;*/
+    /*bottom: 25%;*/
+    /*animation: animWater 20s linear;*/
 }
 
 .air_anim{
     width: calc(var(--8-px) * 2);
     height: calc(var(--8-px) * 2);
-    background: rgb(131, 220, 252);;
-    position: absolute;
-    left: 0;
-    bottom: 16px;
-    animation: animWater 30s linear;
+    background: rgb(131, 220, 252);
+    /* position: absolute; */
+    /* left: 0; */
+    /* bottom: 16px; */
+    /* animation: animWater 30s linear; */
 }
 
 .air {
@@ -222,6 +249,7 @@ body {
 }
 
 .button_page.start{
+    box-sizing: border-box;
     margin: calc(var(--8-procent) * 2.5);
     margin-top: calc(var(--8-procent) * 11.25);
 }
@@ -287,6 +315,15 @@ body {
 }
 .wa3{
     animation: anim_wall_3 10s linear forwards;
+}
+
+@keyframes airWalk {
+    0%{
+        transform: translateX(-100vw);
+    }
+    100%{
+        transform: translateX(0);
+    }
 }
 
 @keyframes animBlink {
@@ -574,29 +611,34 @@ body {
 }
 
 .game_buttons{
-    /*box-sizing: content-box;*/
+    top: calc(53% + var(--floor-size));
     position: absolute;
-    width: calc(100% - var(--8-px) * 10);
+    /*     background-color: red; */
+    /*width: calc(100% - var(--8-px) * 10);*/
     bottom: 0;
-    left: 0;
+    /* left: 0; */
+    width: 100%;
+    /* height: calc(100vh - 53%); */
     display: flex;
-    justify-content: space-between;
-    margin: calc(var(--8-px) * 5);
+    justify-content: space-around;
+    /*margin: calc(var(--8-px) * 5);*/
+    flex-direction: row;
 }
 
 .groups_button{
     display: flex;
     flex-direction: column;
+    justify-content: space-around;
 }
 
 .groups_button div{
-    margin: 0;
+    /* margin: 0; */
     width: calc(var(--8-px) * 20);
     height: calc(var(--8-px) * 20);
 }
 
 .groups_button div:nth-child(1){
-    margin-bottom: calc(var(--8-px) * 10);
+    /* margin-bottom: calc(var(--8-px) * 10); */
 }
 
 .groups_button div img{
@@ -605,12 +647,14 @@ body {
 }
 
 .button_type_1 .groups_button div:nth-child(1){
-    margin-bottom: calc(var(--8-px) * 30);
+    /* margin-bottom: calc(var(--8-px) * 30); */
 }
 .button_type_1 .groups_button div{
-    margin: calc(var(--8-px) * 30);
-    width: calc(var(--8-px) * 40);
-    height: calc(var(--8-px) * 40);
+    /* margin: calc(var(--8-px) * 30); */
+    /* width: calc(var(--8-px) * 40); */
+    /* height: calc(var(--8-px) * 40); */
+    width: 15vh;
+    height: 15vh;
 }
 
 .wrapper_start{
@@ -638,8 +682,7 @@ body {
 
 .center_align{
     text-align: center;
-
-    width: 100%;
+    /* width: 100%; */
 }
 
 .switch_page{
@@ -782,4 +825,10 @@ img {
 }
 .downleft{
     transform: rotate(180deg);
+}
+
+.wrapper_wrapper_stone{
+    position: relative;
+    display: flex;
+    flex-direction: column;
 }
