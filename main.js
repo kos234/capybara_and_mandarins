@@ -9,11 +9,17 @@ let difficult = 0;
 let bot;
 let mandarines;
 
-let isDebug = false;
+
 let isMusic = true;
 let ysdk;
 
 let isNotViewRating = true;
+let audioContext = new AudioContext();
+
+let backgroundAudioBuffer;
+let pickupAudioBuffer;
+let loseAudioBuffer = []
+let walkAudioBuffer = [];
 
 let isMobile = (/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i.test(navigator.userAgent));
 
@@ -25,7 +31,6 @@ class CapyPlayer {
     offsetStep = 1;
     directionX = 1;
     directionY = 0;
-    allButtons;
 
     keys = [];
 
@@ -85,8 +90,6 @@ class CapyPlayer {
         };
     }
 
-    timeLast;
-
     createAnim() {
         if (isPaused)
             return;
@@ -138,18 +141,11 @@ class CapyPlayer {
         this.player.alt = "imgs/capy_walk_" + this.directionY + "_" + this.state + ".webp";
 
         if (isMusic) {
-            let walkAudio = new Audio("music/walk_" + parseInt(Math.random() * 6) + ".aac");
-            walkAudio.volume = 0.3;
-            walkAudio.play();
+            playAudio(walkAudioBuffer[parseInt(Math.random() * 6)], 0.25);
         }
 
         this.player.style.left = "calc(" + this.position + " * var(--8-px))";
         this.player.style.bottom = this.state % 2 !== 0 ? "calc(-25 * var(--8-px))" : "calc(-25 * var(--8-px))";
-
-        if (isDebug) {
-            mandarines.scorePage.innerText = new Date().getTime() - this.timeLast;
-            this.timeLast = new Date().getTime();
-        }
     }
 }
 
@@ -194,20 +190,8 @@ class Mandarines {
         }
         if (mandarine == null)
             return;
-        if (isDebug) {
-            this.hit_box_capy.style.top = rectCapy.top + "px";
-            this.hit_box_capy.style.left = rectCapy.left + "px";
-            this.hit_box_capy.style.width = rectCapy.right + "px";
-            this.hit_box_capy.style.height = rectCapy.bottom + "px";
-        }
 
         let elemRect = mandarine.getBoundingClientRect();
-        if (isDebug) {
-            this.hit_box_mad.style.top = (elemRect.top) + "px";
-            this.hit_box_mad.style.left = elemRect.left + "px";
-            this.hit_box_mad.style.width = elemRect.width + "px";
-            this.hit_box_mad.style.height = elemRect.height + "px";
-        }
 
         if ((Math.max(Math.abs(elemRect.bottom - rectCapy.top), Math.abs(rectCapy.top + rectCapy.bottom - elemRect.top)) <= elemRect.height + rectCapy.bottom) && (Math.max(Math.abs(elemRect.right - rectCapy.left), Math.abs(rectCapy.left + rectCapy.right - elemRect.left)) <= elemRect.width + rectCapy.right)) {
             if (mandarine.getAttribute("wall") % 2 === capy.directionY % 2)
@@ -263,24 +247,20 @@ class Mandarines {
     addLose() {
         this.mandarinLose++;
         if (isMusic) {
-            let audio;
             if (this.mandarinLose < 3) {
-                audio = new Audio("music/lose_0.aac");
+                playAudio(loseAudioBuffer[0], 1);
             } else if (this.mandarinLose < 5) {
-                audio = new Audio("music/lose_1.aac");
+                playAudio(loseAudioBuffer[1], 1);
             } else if (this.mandarinLose < 6) {
-                audio = new Audio("music/lose_2.aac");
+                playAudio(loseAudioBuffer[2], 1);
             } else {
-                audio = new Audio("music/lose_3.aac");
+                playAudio(loseAudioBuffer[3], 1);
             }
-
-            audio.play();
         }
 
         this.animBar();
         if (this.loseWrapper.children.length < this.mandarinLose) {
             menu.saveGameOver();
-            //this.gameOver();
         } else {
             this.loseWrapper.children[this.mandarinLose - 1].src = "imgs/mandarin_not.webp";
         }
@@ -295,9 +275,7 @@ class Mandarines {
 
     addWin() {
         if (isMusic) {
-            let audio = new Audio("music/pickup.mp3");
-            audio.volume = 0.15;
-            audio.play();
+            playAudio(pickupAudioBuffer, 0.2);
         }
         this.mandarinWin++;
         if (this.mandarinWin % 100 === 0) {
@@ -413,25 +391,29 @@ class BackGround {
         for (let i = this.animAir.children.length - 1; i >= 0; i--)
             this.animWeatherMethod(this.animAir.children[i]);
 
-        this.animAir.style.transition = "transform " + (timeCloud) + "ms linear";
-        this.animAir.style.transform = "translateX(0)";
+        this.animAir.style.animation = "animWaterAndWeather " + timeCloud + "ms linear forwards";
+
+        this.animAir.addEventListener("animationend", () => {
+            this.animWeatherMethodRestart();
+        }, false);
 
         for (let i = this.animWater.children.length - 1; i >= 0; i--)
             this.animWaterMethod(this.animWater.children[i]);
 
-        this.animWater.style.transition = "transform " + (timeWater) + "ms linear";
-        this.animWater.style.transform = "translateX(0)";
+        this.animWater.style.animation = "animWaterAndWeather " + timeWater + "ms linear forwards";
+        this.animWater.addEventListener("animationend", () => {
+            this.animWaterMethodRestart();
+        }, false);
     }
 
     animWeatherMethodRestart() {
         this.animAir.children[1].innerHTML = "";
         this.animWeatherMethod(this.animAir.children[1]);
         this.animAir.insertBefore(this.animAir.children[1], this.animAir.children[0]);
-        this.animAir.style.removeProperty("transition");
-        this.animAir.style.removeProperty("transform");
+
+        this.animAir.style.removeProperty("animation");
         setTimeout(() => {
-            this.animAir.style.transition = "transform " + (timeCloud) + "ms linear";
-            this.animAir.style.transform = "translateX(0)";
+            this.animAir.style.animation = "animWaterAndWeather " + timeCloud + "ms linear forwards";
         }, 10);
     }
 
@@ -439,19 +421,14 @@ class BackGround {
         this.animWater.children[1].innerHTML = "";
         this.animWaterMethod(this.animWater.children[1]);//animWaterMethod
         this.animWater.insertBefore(this.animWater.children[1], this.animWater.children[0]);
-        this.animWater.style.removeProperty("transition");
-        this.animWater.style.removeProperty("transform");
+
+        this.animWater.style.removeProperty("animation");
         setTimeout(() => {
-            this.animWater.style.transition = "transform " + (timeWater) + "ms linear";
-            this.animWater.style.transform = "translateX(0)";
+            this.animWater.style.animation = "animWaterAndWeather " + timeWater + "ms linear forwards";
         }, 10);
     }
 
     animWeatherMethod(parent) {
-        // if (isWeatherPaused)
-        //     return;
-
-
         for (let i = 0; i < 120; i++) {
             let rand = parseInt((Math.random() * 3), 10);
             let local = this.dataOffset[rand];
@@ -459,10 +436,8 @@ class BackGround {
                 local *= -1;
             this.offset += local;
 
-            // alert(this.offset)
             if (this.offset < 0)
                 this.offset = 0;
-            // if (this.offset !== 0) {
             let div = document.createElement("div");
             div.className = "air_anim";
             if (this.offset !== 0)
@@ -473,14 +448,12 @@ class BackGround {
                 div.remove();
             }, false);
             parent.appendChild(div);
-            // }
         }
     }
 
     animWaterMethod(parent) {
         let offsetWrapper = 0;
         for (let i = 0; offsetWrapper < 240; i++) {
-            // if (Math.random() <= 0.5) {
             let div = document.createElement("div");
             div.className = "water_anim";
             div.style.marginBottom = "calc(" + parseInt(Math.random() * 19, 10) + " * var(--8-px))";
@@ -491,7 +464,6 @@ class BackGround {
                 div.remove();
             }, false);
             parent.appendChild(div);
-            // }
         }
     }
 
@@ -515,15 +487,13 @@ class Menu {
     localScore;
     maxScore
     isOpen = false;
-    backgroundAudio = new Audio('music/background.aac');
+    // backgroundAudio;// = new Audio('music/background.aac');
 
     buttonNewLiveAccept;
     buttonNewLiveCancel;
     startWrapper
     newLiveWrapper;
 
-
-    //settings
     selectElemDifficult;
     selectionAboutDifficult;
 
@@ -602,7 +572,7 @@ class Menu {
             elem.onclick = () => {
                 this.switchClick(elem);
             }
-        })
+        });
     }
 
     clickSelection(elem) {
@@ -611,17 +581,6 @@ class Menu {
         this.initDif();
 
         localStorage.setItem("difficult", difficult);
-    }
-
-    cycleMusic() {
-        if (!isMusic)
-            return;
-        if (isWeatherPaused)
-            return;
-        if (menu.backgroundAudio.currentTime >= menu.backgroundAudio.duration - 0.5) {
-            menu.backgroundAudio = new Audio('music/background.aac');
-            menu.playBackground();
-        }
     }
 
     initDif() {
@@ -651,14 +610,10 @@ class Menu {
             case "0":
                 isMusic = isActive;
                 if (isActive) {
-                    this.playBackground();
+                    //  this.playBackground();
                 } else {
-                    this.backgroundAudio.pause();
+                    // this.backgroundAudio.pause();
                 }
-                break;
-
-            case "1":
-                isDebug = isActive;
                 break;
         }
     }
@@ -674,7 +629,13 @@ class Menu {
         this.isSettings = !this.isSettings;
     }
 
+    lastPlay = 0;
+
     startGame(isBot = false) {
+        if (isMusic) {
+            this.playBackground();
+        }
+
         this.pauseButton.style.opacity = "1";
 
         this.isOpen = false;
@@ -682,8 +643,7 @@ class Menu {
         onPause(false);
         if (this.isReload) {
             mandarines = new Mandarines();
-            // this.backgroundAudio.play();
-            this.playBackground();
+            //this.playBackground();
         }
         this.isReload = false;
         if (isBot)
@@ -695,16 +655,21 @@ class Menu {
             return;
         if (isWeatherPaused)
             return;
-
-        this.backgroundAudio.volume = 0.3;
-        this.backgroundAudio.play();
+        if (!backgroundAudioBuffer) {
+            return;
+        }
+        if (isPaused) {
+            return;
+        }
+        let localTime = new Date().getTime();
+        if (this.lastPlay === 0 || (this.lastPlay + backgroundAudioBuffer.duration * 0.99 * 1000) <= localTime) {
+            this.lastPlay = localTime;
+            playAudio(backgroundAudioBuffer, 0.2);
+        }
     }
 
     saveGameOver() {
-        // isPaused = true;
-        // setTimeout(() => {
         onPause(true);
-        // }, 10)
         this.isOpen = true;
         this.pauseButton.style.opacity = "0";
         this.startWrapper.style.transform = "translateY(0)";
@@ -718,6 +683,7 @@ class Menu {
                     <img src="imgs/mandarin.webp" alt="mandarin_lose" class="mandarin_lose">`;
 
         this.buttonNewLiveAccept.onclick = () => {
+            onPause(true, true);
             ysdk.adv.showRewardedVideo({
                 callbacks: {
                     onOpen: () => {
@@ -727,6 +693,7 @@ class Menu {
 
                     },
                     onClose: () => {
+                        onPause(false);
                         this.newLiveActive();
                     },
                     onError: (e) => {
@@ -786,14 +753,15 @@ class Menu {
                     });
             }
         });
+        audioContext.suspend();
 
         ysdk.adv.showFullscreenAdv({
             callbacks: {
                 onClose: function (wasShown) {
-
+                    audioContext.resume();
                 },
                 onError: function (error) {
-
+                    audioContext.resume();
                 }
             }
         })
@@ -825,26 +793,88 @@ function onPause(paus = true, full = false, isTab = false) {
     if (!(isTab && !paus)) {
         document.querySelectorAll(".mandarin").forEach((elem) => {
             elem.style.animationPlayState = paus ? "paused" : "running";
+            elem.getBoundingClientRect();
         });
         isPaused = paus;
 
         if (full) {
+            backGround.animAir.style.animationPlayState = paus ? "paused" : "running";
+            backGround.animWater.style.animationPlayState = paus ? "paused" : "running";
             isWeatherPaused = paus;
-            if (paus) {
-                menu.backgroundAudio.pause();
+            if (isPaused) {
+                audioContext.suspend();
             } else {
-                menu.playBackground();
+                audioContext.resume();
             }
         }
         document.querySelector(".pauseButton").src = isPaused ? "imgs/play_arrow_black_24dp.svg" : "imgs/pause_black_24dp.svg";
     }
 }
 
-// let speedCloud;
 let timeCloud = 30 * 1000;
 
-// let speedWater;
 let timeWater = 20 * 1000;
+
+fetch("./music/background.mp3")
+    .then(data => data.arrayBuffer())
+    .then(arr => audioContext.decodeAudioData(arr))
+    .then(decode => backgroundAudioBuffer = decode);
+
+fetch("./music/pickup.mp3")
+    .then(data => data.arrayBuffer())
+    .then(arr => audioContext.decodeAudioData(arr))
+    .then(decode => pickupAudioBuffer = decode);
+fetch("./music/lose_0.mp3")
+    .then(data => data.arrayBuffer())
+    .then(arr => audioContext.decodeAudioData(arr))
+    .then(decode => loseAudioBuffer[0] = (decode));
+fetch("./music/lose_1.mp3")
+    .then(data => data.arrayBuffer())
+    .then(arr => audioContext.decodeAudioData(arr))
+    .then(decode => loseAudioBuffer[1] = decode);
+fetch("./music/lose_2.mp3")
+    .then(data => data.arrayBuffer())
+    .then(arr => audioContext.decodeAudioData(arr))
+    .then(decode => loseAudioBuffer[2] = decode);
+fetch("./music/lose_3.mp3")
+    .then(data => data.arrayBuffer())
+    .then(arr => audioContext.decodeAudioData(arr))
+    .then(decode => loseAudioBuffer[3] = decode);
+fetch("./music/walk_0.mp3")
+    .then(data => data.arrayBuffer())
+    .then(arr => audioContext.decodeAudioData(arr))
+    .then(decode => walkAudioBuffer[0] = decode);
+fetch("./music/walk_1.mp3")
+    .then(data => data.arrayBuffer())
+    .then(arr => audioContext.decodeAudioData(arr))
+    .then(decode => walkAudioBuffer[1] = decode);
+fetch("./music/walk_2.mp3")
+    .then(data => data.arrayBuffer())
+    .then(arr => audioContext.decodeAudioData(arr))
+    .then(decode => walkAudioBuffer[2] = decode);
+fetch("./music/walk_3.mp3")
+    .then(data => data.arrayBuffer())
+    .then(arr => audioContext.decodeAudioData(arr))
+    .then(decode => walkAudioBuffer[3] = decode);
+fetch("./music/walk_4.mp3")
+    .then(data => data.arrayBuffer())
+    .then(arr => audioContext.decodeAudioData(arr))
+    .then(decode => walkAudioBuffer[4] = decode);
+fetch("./music/walk_5.mp3")
+    .then(data => data.arrayBuffer())
+    .then(arr => audioContext.decodeAudioData(arr))
+    .then(decode => walkAudioBuffer[5] = decode);
+
+function playAudio(buffer, volume) {
+    let sound = audioContext.createBufferSource();
+    let gainNode = audioContext.createGain();
+    gainNode.gain.value = volume;
+    sound.buffer = buffer;
+    sound.connect(gainNode).connect(audioContext.destination);
+    sound.start(0);
+
+    return sound;
+}
 
 function gameInit(isStart = true) {
     _8__px = parseFloat(window.getComputedStyle(document.body).getPropertyValue('--8-px'));
@@ -948,14 +978,14 @@ function mainLoop() {
         capy.createAnim();
         lastMoveTime = localTime;
     }
-    if (localTime - lastWeatherTime >= timeCloud) {
-        backGround.animWeatherMethodRestart();
-        lastWeatherTime = localTime;
-    }
-    if (localTime - lastWaterTime >= timeWater) {
-        backGround.animWaterMethodRestart();
-        lastWaterTime = localTime;
-    }
+    // if (localTime - lastWeatherTime >= timeCloud) {
+    //     backGround.animWeatherMethodRestart();
+    //     lastWeatherTime = localTime;
+    // }
+    // if (localTime - lastWaterTime >= timeWater) {
+    //     backGround.animWaterMethodRestart();
+    //     lastWaterTime = localTime;
+    // }
     if (localTime - lastBackgroundTime >= 100) {
         backGround.animBackground();
         lastBackgroundTime = localTime;
@@ -972,7 +1002,7 @@ function mainLoop() {
         lastBotII = localTime;
     }
 
-    menu.cycleMusic();
+    menu.playBackground();
 
     requestAnimationFrame(mainLoop);
 }
