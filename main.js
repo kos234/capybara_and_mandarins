@@ -2,7 +2,7 @@ let _8__px;
 let _current_8_px;
 let capy;
 let isPaused = true;
-let isWeatherPaused = false;
+let isMusicPause = false;
 let backGround;
 let menu;
 let difficult = 0;
@@ -11,9 +11,9 @@ let mandarines;
 
 
 let isMusic = true;
-let ysdk;
+// let ysdk;
 
-let isNotViewRating = true;
+// let isNotViewRating = true;
 let audioContext = new AudioContext();
 
 let backgroundAudioBuffer;
@@ -75,9 +75,11 @@ class CapyPlayer {
     }
 
     reset() {
+        this.directionY = 0;
         this.position = 1920 / 2 / 8;
         this.offsetStep = 1;
         this.player.style.left = "calc(" + this.position + " * var(--8-px))";
+        this.player.src = "imgs/capy_walk_0_0.webp";
     }
 
     getCarrete() {
@@ -368,6 +370,7 @@ class Bot {
     end() {
         if (bot.isBot()) {
             this.is = false;
+            capy.keys = [];
         }
     }
 }
@@ -468,7 +471,7 @@ class BackGround {
     }
 
     animBackground() {
-        if (isWeatherPaused)
+        if (isPaused && (mandarines))
             return;
         this.state++;
         if (this.state > 3)
@@ -480,13 +483,13 @@ class BackGround {
 }
 
 class Menu {
-    isReload = true;
+    // isReload = true;
     pauseButton;
     menu;
     subtitlePage;
     localScore;
     maxScore
-    isOpen = false;
+    isOpen = true;
     // backgroundAudio;// = new Audio('music/background.aac');
 
     buttonNewLiveAccept;
@@ -532,13 +535,16 @@ class Menu {
         this.menu.querySelector(".start_dialog .button_page.start").onclick = () => {
             this.startGame();
         };
+        this.menu.querySelector(".start_dialog .button_page.restart").onclick = () => {
+            mandarines.gameOver(mandarines.mandarinWin);
+        };
         this.menu.querySelectorAll(".button_page.settings").forEach(elem => {
             elem.onclick = () => {
                 this.settings();
             };
         });
         this.menu.querySelector(".button_page.bot").onclick = () => {
-            this.startGame(true);
+            this.startGame(!bot.isBot());
         };
 
         let tmp = document.body.querySelector(".switch_page.difficult");
@@ -609,10 +615,9 @@ class Menu {
         switch (id) {
             case "0":
                 isMusic = isActive;
-                if (isActive) {
-                    //  this.playBackground();
-                } else {
-                    // this.backgroundAudio.pause();
+                console.log("isMusic")
+                if (!isMusic) {
+                    audioContext.suspend();
                 }
                 break;
         }
@@ -637,30 +642,29 @@ class Menu {
         }
 
         this.pauseButton.style.opacity = "1";
-
         this.isOpen = false;
         this.menu.style.transform = "translateY(-100%)";
-        onPause(false);
-        if (this.isReload) {
-            mandarines = new Mandarines();
-            //this.playBackground();
-        }
-        this.isReload = false;
+        onPause(false, true);
         if (isBot)
             bot.start();
+        else if (mandarines)
+            bot.end()
+
+        if (!mandarines) {
+            mandarines = new Mandarines();
+        }
     }
 
     playBackground() {
         if (!isMusic)
             return;
-        if (isWeatherPaused)
+        if (isMusicPause)
             return;
         if (!backgroundAudioBuffer) {
             return;
         }
-        if (isPaused) {
+        if (!mandarines)
             return;
-        }
         let localTime = new Date().getTime();
         if (this.lastPlay === 0 || (this.lastPlay + backgroundAudioBuffer.duration * 0.99 * 1000) <= localTime) {
             this.lastPlay = localTime;
@@ -684,23 +688,22 @@ class Menu {
 
         this.buttonNewLiveAccept.onclick = () => {
             onPause(true, true);
-            ysdk.adv.showRewardedVideo({
-                callbacks: {
-                    onOpen: () => {
-
-                    },
-                    onRewarded: () => {
-
-                    },
-                    onClose: () => {
-                        onPause(false);
+            // ysdk.adv.showRewardedVideo({
+            //     callbacks: {
+            //         onOpen: () => {
+            //
+            //         },
+            //         onRewarded: () => {
+            //
+            //         },
+            //         onClose: () => {
                         this.newLiveActive();
-                    },
-                    onError: (e) => {
-                        console.log('Error while open video ad:', e);
-                    }
-                }
-            })
+                    // },
+                    // onError: (e) => {
+                    //     console.log('Error while open video ad:', e);
+                    // }
+                // }
+            // })
         }
         this.buttonNewLiveCancel.onclick = () => {
             this.startWrapper.style.transform = "translateY(-100vh)";
@@ -727,8 +730,30 @@ class Menu {
         }, 500);
     }
 
+    openPause() {
+        this.pauseButton.style.opacity = "0";
+
+        this.menu.style.transform = "translateY(0%)";
+        this.menu.querySelector(".start_dialog .title_page").innerText = "Пауза";
+        this.menu.querySelector(".start_dialog .button_page.start").innerText = "Продолжить";
+        this.menu.querySelector(".start_dialog .button_page.bot").innerText = !bot.isBot() ? "Включить бота" : "Выключить бота";
+        this.localScore.style.removeProperty("display");
+        this.menu.querySelector(".start_dialog .button_page.restart").style.removeProperty("display");
+        this.localScore.innerText = "Текущий счёт: " + mandarines.mandarinWin;
+        this.subtitlePage.innerText = "Максимальный счёт: " + this.maxScore;
+    }
+
+    closePause() {
+        this.pauseButton.style.opacity = "1";
+
+        this.menu.style.transform = "translateY(-100%)";
+    }
+
     gaveEnd(score) {
+        this.menu.querySelector(".start_dialog .button_page.restart").style.display = "none";
+        this.menu.querySelector(".start_dialog .button_page.start").innerText = "Играть";
         this.isOpen = true;
+        onPause(false, true);
         this.pauseButton.style.opacity = "0";
         if (!bot.isBot()) {
             this.maxScore = Math.max(this.maxScore, score);
@@ -736,43 +761,46 @@ class Menu {
 
         bot.end();
 
-        if (isNotViewRating) {
-            ysdk.feedback.canReview()
-                .then(({value, reason}) => {
-                    if (value) {
-                        ysdk.feedback.requestReview()
-                    }
-                })
-        }
+        // if (isNotViewRating) {
+        //     ysdk.feedback.canReview()
+        //         .then(({value, reason}) => {
+        //             if (value) {
+        //                 ysdk.feedback.requestReview()
+        //             }
+        //         })
+        // }
+        //
+        // ysdk.isAvailableMethod('leaderboards.getLeaderboardPlayerEntry').then(value => {
+        //     if (value) {
+        //         ysdk.getLeaderboards()
+        //             .then(lb => {
+        //                 lb.setLeaderboardScore('allscore', this.maxScore);
+        //             });
+        //     }
+        // });
+        // audioContext.suspend();
+        //
+        // ysdk.adv.showFullscreenAdv({
+        //     callbacks: {
+        //         onClose: function (wasShown) {
+        //             audioContext.resume();
+        //         },
+        //         onError: function (error) {
+        //             audioContext.resume();
+        //         }
+        //     }
+        // })
 
-        ysdk.isAvailableMethod('leaderboards.getLeaderboardPlayerEntry').then(value => {
-            if (value) {
-                ysdk.getLeaderboards()
-                    .then(lb => {
-                        lb.setLeaderboardScore('allscore', this.maxScore);
-                    });
-            }
-        });
-        audioContext.suspend();
-
-        ysdk.adv.showFullscreenAdv({
-            callbacks: {
-                onClose: function (wasShown) {
-                    audioContext.resume();
-                },
-                onError: function (error) {
-                    audioContext.resume();
-                }
-            }
-        })
+        mandarines = null;
 
         localStorage.setItem("max_score", this.maxScore);
 
         this.menu.style.transform = "translateY(0%)";
-        this.menu.querySelector(".title_page").innerText = "Игра окончена";
+        this.menu.querySelector(".start_dialog .title_page").innerText = "Игра окончена";
         this.localScore.style.removeProperty("display");
         this.localScore.innerText = "Текущий счёт: " + score;
         this.subtitlePage.innerText = "Максимальный счёт: " + this.maxScore;
+        this.menu.querySelector(".start_dialog .button_page.bot").innerText = "Включить бота";
     }
 }
 
@@ -788,26 +816,33 @@ window.addEventListener("resize", function () {
 });
 
 function onPause(paus = true, full = false, isTab = false) {
-    if (menu.isOpen && !isTab)
-        return;
-    if (!(isTab && !paus)) {
+    if (menu.isOpen || (!(isTab && !paus))) {
         document.querySelectorAll(".mandarin").forEach((elem) => {
             elem.style.animationPlayState = paus ? "paused" : "running";
             elem.getBoundingClientRect();
         });
         isPaused = paus;
+        document.querySelector(".pauseButton").src = isPaused ? "imgs/play_arrow_black_24dp.svg" : "imgs/pause_black_24dp.svg";
 
-        if (full) {
-            backGround.animAir.style.animationPlayState = paus ? "paused" : "running";
-            backGround.animWater.style.animationPlayState = paus ? "paused" : "running";
-            isWeatherPaused = paus;
+        backGround.animAir.style.animationPlayState = paus ? "paused" : "running";
+        backGround.animWater.style.animationPlayState = paus ? "paused" : "running";
+
+        if (!menu.isOpen) {
             if (isPaused) {
+                menu.openPause();
+            } else {
+                menu.closePause();
+            }
+        }
+
+        if (full && isMusic) {
+            isMusicPause = paus;
+            if (isMusicPause) {
                 audioContext.suspend();
             } else {
                 audioContext.resume();
             }
         }
-        document.querySelector(".pauseButton").src = isPaused ? "imgs/play_arrow_black_24dp.svg" : "imgs/pause_black_24dp.svg";
     }
 }
 
@@ -819,7 +854,6 @@ fetch("./music/background.mp3")
     .then(data => data.arrayBuffer())
     .then(arr => audioContext.decodeAudioData(arr))
     .then(decode => backgroundAudioBuffer = decode);
-
 fetch("./music/pickup.mp3")
     .then(data => data.arrayBuffer())
     .then(arr => audioContext.decodeAudioData(arr))
@@ -911,13 +945,13 @@ function gameInit(isStart = true) {
         backGround = new BackGround();
         menu = new Menu();
         capy = new CapyPlayer();
-        YaGames
-            .init()
-            .then(_sdk => {
-                ysdk = _sdk;
-
-                ysdk.features.LoadingAPI?.ready();
-            }).catch(console.error);
+        // YaGames
+        //     .init()
+        //     .then(_sdk => {
+        //         ysdk = _sdk;
+        //
+        //         ysdk.features.LoadingAPI?.ready();
+        //     }).catch(console.error);
 
         mainLoop();
     }
