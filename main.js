@@ -687,7 +687,7 @@ class Menu {
                     <img src="imgs/mandarin.webp" alt="mandarin_lose" class="mandarin_lose">`;
 
         this.buttonNewLiveAccept.onclick = () => {
-            onPause(true, true);
+            onPause(true, false);
             // ysdk.adv.showRewardedVideo({
             //     callbacks: {
             //         onOpen: () => {
